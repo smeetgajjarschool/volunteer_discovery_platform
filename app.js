@@ -12,18 +12,6 @@ var cookieParser = require('cookie-parser');
 var elasticsearch = require('elasticsearch');
 var cors = require('cors')
 
-
-var mongo = require('mongodb');
-var mongoose = require('mongoose');
-
-//var db = mongojs('customerapp', ['users']);
-mongoose.connect('mongodb://localhost/loginapp');
-var db = mongoose.connection;
-
-
-var routes = require('./routes/index');
-var users = require('./routes/users');
-
 // Initializing app
 var app = express();
 
@@ -36,6 +24,11 @@ app.use(function(req, res, next) {
 // View Engine
 //app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+
+app.set('view engine', 'handlebars');
+
+var Handlebars = require('handlebars');
+
 app.engine('handlebars', exphbs(
 
 	{defaultLayout: 'layout', helpers: {
@@ -45,7 +38,52 @@ app.engine('handlebars', exphbs(
 
 		}
 	}}));
-app.set('view engine', 'handlebars')
+
+Handlebars.registerHelper('with', function(context, options) {
+  return options.fn(context);
+});
+
+Handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
+
+    switch (operator) {
+        case '==':
+            return (v1 == v2) ? options.fn(this) : options.inverse(this);
+        case '===':
+            return (v1 === v2) ? options.fn(this) : options.inverse(this);
+        case '!=':
+            return (v1 != v2) ? options.fn(this) : options.inverse(this);
+        case '!==':
+            return (v1 !== v2) ? options.fn(this) : options.inverse(this);
+        case '<':
+            return (v1 < v2) ? options.fn(this) : options.inverse(this);
+        case '<=':
+            return (v1 <= v2) ? options.fn(this) : options.inverse(this);
+        case '>':
+            return (v1 > v2) ? options.fn(this) : options.inverse(this);
+        case '>=':
+            return (v1 >= v2) ? options.fn(this) : options.inverse(this);
+        case '&&':
+            return (v1 && v2) ? options.fn(this) : options.inverse(this);
+        case '||':
+            return (v1 || v2) ? options.fn(this) : options.inverse(this);
+        default:
+            return options.inverse(this);
+    }
+});
+
+
+var mongo = require('mongodb');
+var mongoose = require('mongoose');
+
+//var db = mongojs('customerapp', ['users']);
+mongoose.connect('mongodb://localhost/loginapp');
+var db = mongoose.connection;
+
+
+var routes = require('./routes/index');
+var users = require('./routes/users');
+
+
 
 
 // Body Parser Middleware

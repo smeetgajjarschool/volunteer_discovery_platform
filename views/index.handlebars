@@ -1,32 +1,8 @@
-
 <h2>
 Hi, {{user.name}}
 </h2>
 <p>Welcome to your dashboard</p>  
 <hr>
-
-
-<input id="search_input">
-<btn class="btn btn-primary" id="search_btn">Search</btn>
-
-  <h3>Search Results</h3>
-
-  <div class="container" >
-  <div class="row">
-      <div class="col-md-8" id="search_results">
-
-      </div>
-      <div class="col-md-4">
-      <h4>Sort by: </h4>
-      <btn class="btn btn-primary" id="sort_start_date" style="width:100%">Start Date</btn>
-      <hr>
-      <btn class="btn btn-primary" id="sort_location" style="width:100%">Location</btn>
-      <h4 id="aggregation_results">Aggregations:</h4>
-      </div>
-
-  </div>
-  </div>
-
 
 
 {{#if events}}
@@ -43,258 +19,23 @@ Hi, {{user.name}}
     </thead>
     <tbody>
       {{#each events}}
-      <tr>
-        <td>{{event_name}}</td>
-        <td>{{event_start_date}}</td>
-        <td>{{event_end_date}}</td>
-        <td>{{lat}}/{{lng}}</td>
-      </tr>
+          <tr>
+            <td><a href="/events/{{_id}}">{{event_name}}</a></td>
+            <td>{{event_start_date}}</td>
+            <td>{{event_end_date}}</td>
+            <td>{{lat}}/{{lng}}</td>
+
+          </tr>
       {{/each}}
     </tbody>
   </table>
 </div>
 
-<form method="get" action="/events">
-  <button type="submit" class="btn btn-success" >Create New Event</button>
-</form>
 
 {{/if}}
 
-<script>
-
-function querySearch(query) {
-        $.ajax({
-        url: "http://localhost:9200/test_events4/_search/",
-        type: 'post',
-        dataType: 'json',
-        success: function(data) {
-            //console.log("Success" + JSON.stringify(data["aggregations"]["event_types"]["buckets"]));
-
-            console.log("data is " + JSON.stringify(data["hits"]["hits"]));
-
-            $("#search_results").empty();
-
-            if (data["hits"]["hits"].length == 0 ){
-              
-            $("#search_results").append('<h4>No results :( </h4>');
-              return;
-            }
-
-            data["hits"]["hits"].forEach(function(element) {
-                element = element["_source"]
-                console.log("search result is "  +  JSON.stringify(element));
-
-                var $div = $("<div>", {"class": "row"});
-                var $h4_name = $("<h4>");
-                $h4_name.text(element["name"]);
-                var $p = $("<p>", {"style": "color:grey"});
-                $p.text('From ' + element['start_date'] + ' to ' + element['end_date'] + ' at ' + element['location']['lat'] + ',' + element['location']['lon']);
-
-                $div.append('<hr>');
-                $div.append($h4_name);
-                $div.append($p);
-                $div.append('<hr>');
-
-            
-                $("#search_results").append($div);
 
 
-            });
-
-            $("#aggregation_results").empty();
-
-                data["aggregations"]["event_types"]["buckets"].forEach(function(element){
-                  agg_name = element['key'];
-                  agg_count = element['doc_count'];
-                  $("#aggregation_results").append('<p style="color:grey"> ' + agg_name + ' : ' + agg_count + '</p>');
-
-                });
-
-        },
-        error: function(data) {
-            // should be only one item in hits
-            $(data.hits.hits).each(function(index, hit) {
-                alert(hit._source.items);
-            });
-        },
-        data: JSON.stringify(query)
-    });
-}
-
-var search_input = ''
-
-
-$( "#search_btn" ).click(function() {
-
-  search_input = $("#search_input").val()
-
-  console.log("searching " + search_input);
-
-  query = {
-    query: {
-      multi_match: {
-        query: search_input,
-        fields: ["name^3", "event_type"],
-        fuzziness: "AUTO"
-      }
-    },
-
-    aggs: {
-      event_types:{
-        terms: {field: "event_type"}
-      }
-    }  
-
-  }
-
-if (search_input && (search_input.replace(/^\s+|\s+$/g, '').length != 0 )) {
-
-    querySearch(query);
-
-} else {
-
-  query = {
-    query: {
-      match_all: {}
-    },
-    aggs: {
-      event_types:{
-        terms: {field: "event_type"}
-      }
-    }  
-  }
-
-  querySearch(query);
-
-}
-
-});
-
-$( "#sort_start_date" ).click(function() {
-
-  search_input = $("#search_input").val()
-
-  console.log("searching " + search_input);
-
-
-  query = {
-    query: {
-      multi_match: {
-        query: search_input,
-        fields: ["name^3", "event_type"],
-        fuzziness: "AUTO"
-      }
-    },
-    sort: [
-    {start_date: {order: "asc"}}
-    ],
-
-    aggs: {
-      event_types:{
-        terms: {field: "event_type"}
-      }
-    }  
-  }
-
-if (search_input && (search_input.replace(/^\s+|\s+$/g, '').length != 0 )) {
-
-    querySearch(query);
-
-} else {
-
-  query = {
-    query: {
-      match_all: {}
-    },
-    sort: [
-    {start_date: {order: "asc"}}
-    ],
-
-    aggs: {
-      event_types:{
-        terms: {field: "event_type"}
-      }
-    }  
-  }
-
-  querySearch(query);
-
-}
-
-});
-
-$( "#sort_location" ).click(function() {
-
-  search_input = $("#search_input").val()
-
-  console.log("searching " + search_input);
-
-
-  query = {
-    query: {
-      multi_match: {
-        query: search_input,
-        fields: ["name^3", "event_type"],
-        fuzziness: "AUTO"
-      }
-    },
-    sort: [
-    {
-      _geo_distance: {
-        location: {
-          lat: {{user.lat}},
-          lon: {{user.lng}}
-        },
-        order: "asc",
-        unit: "km",
-        distance_type: "plane"
-    }
-    }
-    ],
-
-    aggs: {
-      event_types:{
-        terms: {field: "event_type"}
-      }
-    }  
-  }
-
-if (search_input && (search_input.replace(/^\s+|\s+$/g, '').length != 0 )) {
-
-    querySearch(query);
-
-} else {
-
-  query = {
-    query: {
-      match_all: {}
-    },
-    sort: [
-    {
-      _geo_distance: {
-        location: {
-          lat: {{user.lat}},
-          lon: {{user.lng}}
-        },
-        order: "asc",
-        unit: "km",
-        distance_type: "plane"
-    }
-    }
-    ],
-
-    aggs: {
-      event_types:{
-        terms: {field: "event_type"}
-      }
-    }  
-  }
-
-  querySearch(query);
-
-}
-
-});
-
-</script>
-
+<form method="get" action="/events">
+  <button type="submit" class="btn btn-success" >Create New Event</button>
+</form>

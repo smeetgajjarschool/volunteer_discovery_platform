@@ -9,12 +9,132 @@ var client = new elasticsearch.Client({
 });
 
 var Event = require('../models/events');
+var Application = require('../models/applications');
+var User = require('../models/user.js');
 
 // Get Homepage
 router.get('/', ensureAuthenticated, function(req, res){
 	console.log("req.user is " + req.user);
 
+	var user_type = req.user.user_type;
 	var events;
+
+	if(user_type == 'volunteer'){
+
+		//find all applications this person has done
+		var query = {volunteer_id: req.user.id};
+
+		Application.find(query,function(err, applications){
+				if(err) throw err;
+
+				var user_apps = [];
+
+				applications.forEach(function(application){
+
+					//get event name, start, and end date		
+
+					if (application.event_id != '') {
+
+								Event.findById(application.event_id, function(err, event){
+									if(err) throw err;
+
+									User.findById(event.organization_id, function(err, organization) {
+											if(err) throw err;
+
+											console.log("organization is " + JSON.stringify(organization.name));
+											
+											x = {};
+											x['application'] = application;
+											x['event'] =  event;
+											x['organization_name'] = organization.name;
+											console.log("x is " + JSON.stringify(x));
+											
+											user_apps.push(x);
+											console.log("user apps is " + JSON.stringify(user_apps));
+									});
+
+								});
+					}			
+
+				});
+
+				console.log("all applications are " + JSON.stringify(applications));
+				var context = {user : req.user, applications: JSON.stringify(applications), user_apps: user_apps};
+				res.render('volunteer_dashboard', context);
+		});
+	
+	}
+	else{
+
+	var query = {organization_id: req.user.id}
+	Event.find(query, function(err, events){
+   	if(err) {
+   		console.log("ERROR trying to find events");
+
+   		throw err;
+   	}
+   	if(!events){
+   		return done(null, false, {message: 'Event not found'});
+   	}
+
+   	//console.log("events is " + JSON.stringify(events));
+
+
+				  //find all applications 
+					Application.find(function(err, applications){
+
+						if(err) throw err;
+
+						console.log("all applications are " + JSON.stringify(applications));
+
+						var context = {user : req.user, events: events, applications: applications};
+						res.render('index', context);
+
+					});
+
+   });
+
+	}
+
+	//var context = {user : req.user}
+	//res.render('index', context);
+});
+
+router.post('/applications/:id', ensureAuthenticated, function(req, res){
+
+	console.log("application accept/reject id is " + JSON.stringify(req.params) + " " + JSON.stringify(req.body));
+
+	//find the application
+	query = {_id: req.params.id};
+
+	Application.find(query, function(err, application){
+			if(err) throw err;
+			var application = application[0];
+
+			console.log("application is " + JSON.stringify(application));
+
+			if (req.body.application_action == "accept"){
+				application.status = "accepted";
+			} else if (req.body.application_action == "decline") {
+				application.status = "declined";
+			}
+
+			Application.update(query, application, function(err) {
+					if(err) throw err;
+
+					var event_id = application.event_id;
+					res.redirect('/events/' + event_id);
+			})
+
+	});
+
+
+});
+
+
+router.post('/applications',ensureAuthenticated, function(req, res){
+
+	console.log("application posted! req params is " + JSON.stringify(req.params) + " req body is " + JSON.stringify(req.body));
 
 	Event.find(function(err, events){
    	if(err) {
@@ -26,16 +146,99 @@ router.get('/', ensureAuthenticated, function(req, res){
    		return done(null, false, {message: 'Event not found'});
    	}
 
-   	console.log("events is " + JSON.stringify(events));
+			console.log("event_id is " + req.body.event_id);
 
-  var context = {user : req.user, events: events}
-	res.render('index', context);
+   	 	var query = {_id : req.body.event_id};
 
-   });
+   	 	//finding the event that the user is applying to - we don't need to do this but just testing query
+			Event.find(query, function(err, event){
 
-	//var context = {user : req.user}
-	//res.render('index', context);
+		  		console.log("event is " + JSON.stringify(event));
+				  var newApplication = new Application({
+						event_id: req.body.event_id,
+						volunteer_id: req.user.id,
+					});
+
+
+				  //creating the application
+					Application.createApplication(newApplication, function(err){
+						
+						if(err) throw err;
+				
+								//find all applications for this user
+								var query = {volunteer_id : req.user.id}
+								Application.find(query, function(err, applications){
+
+									if(err) throw err;
+
+									console.log("all applications are " + JSON.stringify(applications));
+
+									req.flash('success_msg', 'Application Created!');
+									//var context = {user : req.user, applications: JSON.stringify(applications)};
+									res.redirect('/');
+
+								});
+
+					});
+   		 });
+		});
 });
+
+router.get('/events/:id', ensureAuthenticated, function(req, res){
+
+	console.log("events/id get id is " + req.params.id);
+
+  var query = {_id : req.params.id};
+
+		Event.find(query, function(err, event){		
+
+				console.log("event is " + JSON.stringify(event));
+											
+				var query = {event_id : req.params.id}
+				
+				var user_apps = [];
+				var user_accepted =[];
+
+				Application.find(query).sort({created_time: -1}).exec(function(err, applications){
+
+						if(err) throw err;
+
+						console.log("applications are " + JSON.stringify(applications));
+
+						applications.forEach(function(application){
+							//find the user's information
+
+								var user_query = {_id: application.volunteer_id};
+
+
+								User.find(user_query, function(err, volunteer) {
+									if(err) throw err;
+
+
+									x = {};
+									x['volunteer'] = volunteer[0];
+									x['application'] = application;
+									console.log("volunteer is " + JSON.stringify(volunteer));
+									console.log("x is " + JSON.stringify(x));
+
+									if (application.status =="tbd") {
+										user_apps.push(x);
+									}else if (application.status =="accepted") {
+										user_accepted.push(x);
+									}
+
+									console.log("user_apps is " + JSON.stringify(x));
+								});
+						});
+
+					var context = {user : req.user, event: event[0], applications: JSON.stringify(applications), user_apps: user_apps, user_accepted: user_accepted};
+					res.render('event_page', context);
+
+				});
+		 });
+});
+
+
 
 router.get('/events', ensureAuthenticated, function(req, res){
 	console.log("req.user is " + req.user);
@@ -177,6 +380,7 @@ router.post('/events', function(req, res){
 						   			location: { lat:lat, lon: lng},
 						   			organization_name: req.user.name,
 						   			event_type: event_type,
+						   			event_id: newEvent.id,
 						   			admin_ids: [14,4,54]
 						   			 		 }
 								}, function (error, response) {

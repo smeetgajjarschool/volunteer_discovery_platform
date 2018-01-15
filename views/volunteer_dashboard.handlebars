@@ -1,5 +1,5 @@
 <h2>
-Hi, {{user.name}}
+Hi volunteer, {{user.name}}
 </h2>
 <p>Welcome to your dashboard</p>  
 <hr>
@@ -10,7 +10,7 @@ Hi, {{user.name}}
 
   <h3>Search Results</h3>
 
-  <div class="container" >
+  <div class="container">
   <div class="row">
       <div class="col-md-8" id="search_results">
 
@@ -24,42 +24,34 @@ Hi, {{user.name}}
       </div>
 
   </div>
-  </div>
+ </div>
+
+
+        {{#if user_apps}}
+        <h3>Applications:</h3>
+        <br>
+        <div class="container">
+        {{#each user_apps}}
+        <div class="row">
+             <h4 style="display: inline;vertical-align: center;">{{event.event_name}}</h4> 
+             <p style="display: inline;vertical-align: center;color:red"> {{application.status}}</p>
+             <br>
+             <p style="display: inline;vertical-align: center;"> {{organization_name}} - </p>
+             <p style="display: inline;vertical-align: center;"> {{application.created_time}}</p>
+
+        </div>
+        <br>
+        <hr>
+        {{/each}}
+        </div>
+        {{/if}}
 
 
 
-{{#if events}}
-<div>
-  <h3>Created Events</h3>
-    <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Event Name</th>
-        <th>Start Date</th>
-        <th>End Date</th>
-        <th>Lat/Lng</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{#each events}}
-      <tr>
-        <td>{{event_name}}</td>
-        <td>{{event_start_date}}</td>
-        <td>{{event_end_date}}</td>
-        <td>{{lat}}/{{lng}}</td>
-      </tr>
-      {{/each}}
-    </tbody>
-  </table>
-</div>
 
-<form method="get" action="/events">
-  <button type="submit" class="btn btn-success" >Create New Event</button>
-</form>
-
-{{/if}}
 
 <script>
+
 
 function querySearch(query) {
         $.ajax({
@@ -167,6 +159,19 @@ function querySearch(query) {
 
 var search_input = ''
 
+//initializing page load with all search results
+  query = {
+    query: {
+      match_all: {}
+    },
+    aggs: {
+      event_types:{
+        terms: {field: "event_type"}
+      }
+    }  
+  }
+
+  querySearch(query);
 
 $( "#search_btn" ).click(function() {
 
@@ -339,6 +344,7 @@ if (search_input && (search_input.replace(/^\s+|\s+$/g, '').length != 0 )) {
 }
 
 });
+
 
 </script>
 
