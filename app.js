@@ -23,6 +23,7 @@ var db = mongoose.connection;
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
+var profiles = require('./routes/profiles');
 
 // Initializing app
 var app = express();
@@ -103,6 +104,7 @@ app.use(function (req, res, next) {
 
 app.use('/', routes);
 app.use('/users', users);
+app.use('/profile', profiles);
 
 var users = [
 
