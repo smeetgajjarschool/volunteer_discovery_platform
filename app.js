@@ -12,6 +12,20 @@ var cookieParser = require('cookie-parser');
 var elasticsearch = require('elasticsearch');
 var cors = require('cors')
 
+
+var mongo = require('mongodb');
+var mongoose = require('mongoose');
+
+//var db = mongojs('customerapp', ['users']);
+mongoose.connect('mongodb://localhost/loginapp');
+var db = mongoose.connection;
+
+
+var routes = require('./routes/index');
+var users = require('./routes/users');
+var profiles = require('./routes/profiles');
+var friends = require('./routes/friends');
+
 // Initializing app
 var app = express();
 
@@ -141,6 +155,8 @@ app.use(function (req, res, next) {
 
 app.use('/', routes);
 app.use('/users', users);
+app.use('/profile', profiles);
+app.use('/friends', friends);
 
 var users = [
 

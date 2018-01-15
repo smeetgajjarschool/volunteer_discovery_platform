@@ -29,10 +29,9 @@ router.get('/', ensureAuthenticated, function(req, res){
 
 				var user_apps = [];
 
-				applications.forEach(function(application){
+				var promises = applications.map(function(application){
 
 					//get event name, start, and end date		
-
 					if (application.event_id != '') {
 
 								Event.findById(application.event_id, function(err, event){
@@ -57,10 +56,13 @@ router.get('/', ensureAuthenticated, function(req, res){
 					}			
 
 				});
+				
+		    Promise.all(promises).then(function () {
+					console.log("all applications are " + JSON.stringify(applications));
+					var context = {user : req.user, applications: JSON.stringify(applications), user_apps: user_apps};
+					res.render('volunteer_dashboard', context);
+		    });
 
-				console.log("all applications are " + JSON.stringify(applications));
-				var context = {user : req.user, applications: JSON.stringify(applications), user_apps: user_apps};
-				res.render('volunteer_dashboard', context);
 		});
 	
 	}
