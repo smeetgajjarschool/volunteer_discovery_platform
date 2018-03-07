@@ -6,7 +6,7 @@ var nodemailer = require('nodemailer');
 var mg = require('nodemailer-mailgun-transport');
 
 var client = new elasticsearch.Client({
-  host: 'localhost:9200',
+  host: 'http://user:nruXvt3KXJ2R@35.227.88.126/elasticsearch',
   log: 'trace'
 });
 
