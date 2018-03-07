@@ -2,6 +2,8 @@ var express = require('express');
 var router = express.Router();
 var elasticsearch = require('elasticsearch');
 
+var nodemailer = require('nodemailer');
+var mg = require('nodemailer-mailgun-transport');
 
 var client = new elasticsearch.Client({
   host: 'localhost:9200',
@@ -11,6 +13,7 @@ var client = new elasticsearch.Client({
 var Event = require('../models/events');
 var Application = require('../models/applications');
 var User = require('../models/user.js');
+var Subscriber = require('../models/subscriber');
 
 // Get Homepage
 router.get('/', ensureAuthenticated, function(req, res){
@@ -371,34 +374,74 @@ router.post('/events', function(req, res){
 			if(err) throw err;
 			console.log(user);
 
-						   	client.index({
-						  		index: 'test_events4',
-						 		  type: 'event',
-						  		body: {
-						   			name: name,
-						   			start_date: newEvent.event_start_date,
-						   			end_date: newEvent.event_end_date,
-						   			recurring: 'recurring',
-						   			location: { lat:lat, lon: lng},
-						   			organization_name: req.user.name,
-						   			event_type: event_type,
-						   			event_id: newEvent.id,
-						   			admin_ids: [14,4,54]
-						   			 		 }
-								}, function (error, response) {
-									if (error){
-										console.log("ERROR when trying to index new document");
-									}
-									else{
-										console.log("response from indexing new document is " + JSON.stringify(response));
-									}
+			client.index({
+				index: 'test_events4',
+					type: 'event',
+				body: {
+					name: name,
+					start_date: newEvent.event_start_date,
+					end_date: newEvent.event_end_date,
+					recurring: 'recurring',
+					location: { lat:lat, lon: lng},
+					organization_name: req.user.name,
+					event_type: event_type,
+					event_id: newEvent.id,
+					admin_ids: [14,4,54]
+								}
+				}, function (error, response) {
+					if (error){
+						console.log("ERROR when trying to index new document");
+					}
+					else{
+						console.log("response from indexing new document is " + JSON.stringify(response));
+					}
 
 
-								});
+			});
+			//expects id from user table
+			var candidate = findSuitableCandidate(newEvent);
+			User.findById(candidate,function(err, user){
+				if(err) throw err;
+				var name = user.name;
+				var email = user.email;
+			
+				var htmlEmail = 'Email will be sent to ' + email +'\n<p>Hi '+ name +'</p><h3>Please consider this new volunteer opportunity recommended for you!</h3><br/><table><tr><td style="background-color: #4ecdc4;border-color: #4c5764;border: 2px solid #45b7af;padding: 10px;text-align: center;"><a style="display: block;color: #ffffff;font-size: 12px;text-decoration: none;text-transform: uppercase;" href="localhost:3050/subscribe/'+newEvent.id+'/yes">Yes</a></td><td style="background-color: #cd4e9c;border-color: #4c5764;border: 2px solid #cd4e9c;padding: 10px;text-align: center;"><a style="display: block;color: #ffffff;font-size: 12px;text-decoration: none;text-transform: uppercase;" href="localhost:3050/subscribe/'+newEvent.id+'/no">No</a></td></tr></table>';
+				//send email to subscriber
+				nodemailerMailgun.sendMail({
+					from: 'team@volunteer.ga',
+					to: 'vuksvilaric@gmail.com', // An array if you have multiple recipients.
+					subject: 'New Volunteer Opportunity',
+					//'h:Reply-To': 'eventCreator@company.com',
+					//You can use "html:" to send HTML email content. It's magic!
+					html: htmlEmail,
+					//You can use "text:" to send plain-text content. It's oldschool!
+				//text: 'Mailgun rocks, pow pow!'
+				}, function (err, info) {
+					if (err) {
+						console.log('Error: ' + err);
+					}
+					else {
+						console.log('Response: ' + info);
+					}
+				});
+				//add subscription event to database
+				var newSubscriber = new Subscriber({
+					event_id: newEvent.id,
+					email_data: [{
+						user_id: candidate,
+						responded: false,
+						response: null
+					}]
+				});
+				Subscriber.createSubscriber(newSubscriber, function(err,user) {
 
-								req.flash('success_msg', 'Event was created');
-								var context = {user : req.user}
-								res.render('events', context);
+				});
+
+			});
+			
+			req.flash('success_msg', 'Event was created');
+			var context = {user : req.user}
+			res.render('events', context);
 
 		});
 
@@ -413,6 +456,23 @@ function ensureAuthenticated(req, res, next){
 		//req.flash('error_msg','You are not logged in');
 		res.redirect('/users/login');
 	}
+}
+
+
+var mailgunAuth = {
+    auth: {
+      api_key: 'key-7619be62d2d1540c552a229a0513286a',
+      domain: 'sandboxf3e60c4b02a34da296579c070ba98b57.mailgun.org'
+    }//,
+    //proxy: 'http://user:pass@localhost:8080' // optional proxy, default is false
+  };
+  var nodemailerMailgun = nodemailer.createTransport(mg(mailgunAuth));
+
+//given event, select a suitable candidate to send email to
+function findSuitableCandidate(eventData) {
+	//for now just return a uid 
+	//TODO - actually recommend a proper candidate based on event
+	return '5a5b8bb79c77e933ac651ff2';
 }
 
 
