@@ -17,7 +17,7 @@ var mongo = require('mongodb');
 var mongoose = require('mongoose');
 
 //var db = mongojs('customerapp', ['users']);
-mongoose.connect('mongodb://localhost/loginapp');
+mongoose.connect('mongodb://user2:password@ds251588.mlab.com:51588/volunteer-cloud');
 var db = mongoose.connection;
 
 
@@ -25,6 +25,7 @@ var routes = require('./routes/index');
 var users = require('./routes/users');
 var profiles = require('./routes/profiles');
 var friends = require('./routes/friends');
+var subscribers = require('./routes/subscribers');
 
 // Initializing app
 var app = express();
@@ -157,6 +158,7 @@ app.use('/', routes);
 app.use('/users', users);
 app.use('/profile', profiles);
 app.use('/friends', friends);
+app.use('/subscribe', subscribers);
 
 var users = [
 
