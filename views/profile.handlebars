@@ -1,0 +1,95 @@
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+<head>
+<style>
+html,
+body,
+#map-canvas {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+</style>
+</head>
+
+<h2 class="page-header">{{user.name}}'s Profile</h2>
+{{#if errors}}
+      {{#each errors}}
+        <div class="alert alert-danger">{{msg}}</div>
+      {{/each}}
+{{/if}}
+
+<a href="/profile/edit" class="btn">Edit Profile</a>
+
+{{#if volunteer}}
+  <div id="volunteer_profile">
+    <table class="table table-striped">
+      <tr>
+        <th>Name</th>
+        <td>{{user.name}}</td>
+      </tr>
+      <tr>
+        <th>Date of Birth</th>
+        <td>{{dob}}</td>
+      </tr>
+      <tr>
+        <th>Interests</th>
+        <td>{{profile.interests}}</td>
+      </tr>
+      <tr>
+        <th>Skills and Experiences</th>
+        <td>{{profile.skills}}</td>
+      </tr>
+    </table>
+    <br><br>
+    <table class="table table-striped">
+      <tr>
+        <th colspan="14">Availability</th>
+      </tr>
+      <tr>
+        <th colspan="2">Monday</th>
+        <th colspan="2">Tuesday</th>
+        <th colspan="2">Wednesday</th>
+        <th colspan="2">Thursday</th>
+        <th colspan="2">Friday</th>
+        <th colspan="2">Saturday</th>
+        <th colspan="2">Sunday</th>
+      </tr>
+      <tr>
+        <td>{{profile.availability.monday.from}}</td>
+        <td>{{profile.availability.monday.to}}</td>
+        <td>{{profile.availability.tuesday.from}}</td>
+        <td>{{profile.availability.tuesday.to}}</td>
+        <td>{{profile.availability.wednesday.from}}</td>
+        <td>{{profile.availability.wednesday.to}}</td>
+        <td>{{profile.availability.thursday.from}}</td>
+        <td>{{profile.availability.thursday.to}}</td>
+        <td>{{profile.availability.friday.from}}</td>
+        <td>{{profile.availability.friday.to}}</td>
+        <td>{{profile.availability.saturday.from}}</td>
+        <td>{{profile.availability.saturday.to}}</td>
+        <td>{{profile.availability.sunday.from}}</td>
+        <td>{{profile.availability.sunday.to}}</td>
+      </tr>
+    </table>
+  </div>
+{{else if organization}}  
+  <div id="organization_profile">
+    <table class="table table-striped">
+      <tr>
+        <th>Name</th>
+        <td>{{user.name}}</td>
+      </tr>
+      <tr>
+        <th>Organization Name</th>
+        <td>{{profile.organization_name}}</td>
+      </tr>
+      <tr>
+        <th>Organization Role</th>
+        <td>{{profile.role}}</td>
+      </tr>
+    </table>
+  </div>
+{{/if}}

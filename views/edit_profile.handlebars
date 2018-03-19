@@ -132,7 +132,7 @@ body,
 </style>
 </head>
 
-<h2 class="page-header">Complete Your Profile</h2>
+<h2 class="page-header">Edit Your Profile</h2>
 {{#if errors}}
       {{#each errors}}
         <div class="alert alert-danger">{{msg}}</div>
@@ -141,119 +141,119 @@ body,
 
 {{#if volunteer}}
   <div id="volunteer_form">
-  <form method="post" action="/profile/create">
-     	<div class="form-group">
-      	<label>Name</label>
-      	<input type="text" class="form-control" placeholder="Name" name="name" value={{user.name}}>
-    	</div>
+  <form method="post" action="/profile/update">
+   	<div class="form-group">
+    	<label>Name</label>
+    	<input type="text" class="form-control" placeholder="Name" name="name" value={{user.name}}>
+  	</div>
 
-    	<div class="form-group">
-      	<label>Date of Birth</label>
-      	<input type="date" class="form-control" placeholder="Date of Birth" name="dob">
-    	</div>
+  	<div class="form-group">
+    	<label>Date of Birth</label>
+    	<input type="date" class="form-control" placeholder="Date of Birth" name="dob" value={{dob}}>
+  	</div>
 
-    	<div class="form-group">
-     		<div class="interests_wrapper">
-  			<label>Interests</label>
-  	    	<input type="text" class="form-control" placeholder="Interest" name="interests[]"><br>
-    		</div>
-  	    <button class="add_interest_button btn">Add Another Interest</button>
-    	</div>
+  	<div class="form-group">
+   		<div class="interests_wrapper">
+			<label>Interests</label>
+	    	<input type="text" class="form-control" placeholder="Interest" name="interests[]" value={{profile.interests}}><br>
+  		</div>
+	    <button class="add_interest_button btn">Add Another Interest</button>
+  	</div>
 
-      <div class="form-group">
-          <div class="skills_wrapper">
-  			<label>Skills or Experiences</label>
-  	    	<input type="text" class="form-control" placeholder="Skill or Experience" name="skills[]"><br>
-    		</div>
-  	    <button class="add_skill_button btn">Add Another Skill or Experience</button>
-    	</div>
+    <div class="form-group">
+        <div class="skills_wrapper">
+			<label>Skills or Experiences</label>
+	    	<input type="text" class="form-control" placeholder="Skill or Experience" name="skills[]" value={{profile.skills}}><br>
+  		</div>
+	    <button class="add_skill_button btn">Add Another Skill or Experience</button>
+  	</div>
 
 
-    	<div class="form-group">
-          <div id="time-range">
-            <br><label>Availability:</label><br>
+  	<div class="form-group">
+        <div id="time-range">
+          <br><label>Availability:</label><br>
 
-            <input type="checkbox" id="checkbox-monday" name="checkbox-monday" value="available-monday">
-            <span>Monday</span>
-            <div id="available-monday-input-slider">
-            <input type="text" class="slider-time-monday" name="availability_monday_from" value = '' readonly>
-            <input type="text" class="slider-time2-monday" name="availability_monday_to" value = '' readonly> 
-            <br><br>
-            <div class="sliders_step1">
-                <div class="slider-range" id="slider-range-monday"></div>
-            </div></div>
-            <br>
-            
-            <input type="checkbox" id="checkbox-tuesday" name="checkbox-tuesday" value="available-tuesday">
-            <span>Tuesday</span>
-            <div id="available-tuesday-input-slider">
-            <input type="text" class="slider-time-tuesday" name="availability_tuesday_from" value = '' readonly>
-            <input type="text" class="slider-time2-tuesday" name="availability_tuesday_to" value = '' readonly> 
-            <br><br>
-            <div class="sliders_step1">
-                <div class="slider-range" id="slider-range-tuesday"></div>
-            </div></div>
-            <br>
+          <input type="checkbox" id="checkbox-monday" name="checkbox-monday" value="available-monday">
+          <span>Monday</span>
+          <div id="available-monday-input-slider">
+          <input type="text" class="slider-time-monday" name="availability_monday_from" value = '{{profile.availability.monday.from}}' readonly>
+          <input type="text" class="slider-time2-monday" name="availability_monday_to" value = '{{profile.availability.monday.to}}' readonly> 
+          <br><br>
+          <div class="sliders_step1">
+              <div class="slider-range" id="slider-range-monday"></div>
+          </div></div>
+          <br>
+          
+          <input type="checkbox" id="checkbox-tuesday" name="checkbox-tuesday" value="available-tuesday">
+          <span>Tuesday</span>
+          <div id="available-tuesday-input-slider">
+          <input type="text" class="slider-time-tuesday" name="availability_tuesday_from" value = '{{profile.availability.tuesday.from}}' readonly>
+          <input type="text" class="slider-time2-tuesday" name="availability_tuesday_to" value = '{{profile.availability.tuesday.to}}' readonly> 
+          <br><br>
+          <div class="sliders_step1">
+              <div class="slider-range" id="slider-range-tuesday"></div>
+          </div></div>
+          <br>
 
-            <input type="checkbox" id="checkbox-wednesday" name="checkbox-wednesday" value="available-wednesday">
-            <span>Wednesday</span>
-            <div id="available-wednesday-input-slider">
-            <input type="text" class="slider-time-wednesday" name="availability_wednesday_from" value = '' readonly>
-            <input type="text" class="slider-time2-wednesday" name="availability_wednesday_to" value = '' readonly> 
-            <br><br>
-            <div class="sliders_step1">
-                <div class="slider-range" id="slider-range-wednesday"></div>
-            </div></div>
-            <br>
+          <input type="checkbox" id="checkbox-wednesday" name="checkbox-wednesday" value="available-wednesday">
+          <span>Wednesday</span>
+          <div id="available-wednesday-input-slider">
+          <input type="text" class="slider-time-wednesday" name="availability_wednesday_from" value = '{{profile.availability.wednesday.from}}' readonly>
+          <input type="text" class="slider-time2-wednesday" name="availability_wednesday_to" value = '{{profile.availability.wednesday.to}}' readonly> 
+          <br><br>
+          <div class="sliders_step1">
+              <div class="slider-range" id="slider-range-wednesday"></div>
+          </div></div>
+          <br>
 
-            <input type="checkbox" id="checkbox-thursday" name="checkbox-thursday" value="available-thursday">
-            <span>Thursday</span>
-            <div id="available-thursday-input-slider">
-            <input type="text" class="slider-time-thursday" name="availability_thursday_from" value = '' readonly>
-            <input type="text" class="slider-time2-thursday" name="availability_thursday_to" value = '' readonly> 
-            <br><br>
-            <div class="sliders_step1">
-                <div class="slider-range" id="slider-range-thursday"></div>
-            </div></div>
-            <br>
+          <input type="checkbox" id="checkbox-thursday" name="checkbox-thursday" value="available-thursday">
+          <span>Thursday</span>
+          <div id="available-thursday-input-slider">
+          <input type="text" class="slider-time-thursday" name="availability_thursday_from" value = '{{profile.availability.thursday.from}}' readonly>
+          <input type="text" class="slider-time2-thursday" name="availability_thursday_to" value = '{{profile.availability.thursday.to}}' readonly> 
+          <br><br>
+          <div class="sliders_step1">
+              <div class="slider-range" id="slider-range-thursday"></div>
+          </div></div>
+          <br>
 
-            <input type="checkbox" id="checkbox-friday" name="checkbox-friday" value="available-friday">
-            <span>Friday</span>
-            <div id="available-friday-input-slider">
-            <input type="text" class="slider-time-friday" name="availability_friday_from" value = '' readonly>
-            <input type="text" class="slider-time2-friday" name="availability_friday_to" value = '' readonly> 
-            <br><br>
-            <div class="sliders_step1">
-                <div class="slider-range" id="slider-range-friday"></div>
-            </div></div>
-            <br>
+          <input type="checkbox" id="checkbox-friday" name="checkbox-friday" value="available-friday">
+          <span>Friday</span>
+          <div id="available-friday-input-slider">
+          <input type="text" class="slider-time-friday" name="availability_friday_from" value = '{{profile.availability.friday.from}}' readonly>
+          <input type="text" class="slider-time2-friday" name="availability_friday_to" value = '{{profile.availability.friday.to}}' readonly> 
+          <br><br>
+          <div class="sliders_step1">
+              <div class="slider-range" id="slider-range-friday"></div>
+          </div></div>
+          <br>
 
-            <input type="checkbox" id="checkbox-saturday" name="checkbox-saturday" value="available-saturday">
-            <span>Saturday</span>
-            <div id="available-saturday-input-slider">
-            <input type="text" class="slider-time-saturday" name="availability_saturday_from" value = '' readonly>
-            <input type="text" class="slider-time2-saturday" name="availability_saturday_to" value = '' readonly> 
-            <br><br>
-            <div class="sliders_step1">
-                <div class="slider-range" id="slider-range-saturday"></div>
-            </div></div>
-            <br>
+          <input type="checkbox" id="checkbox-saturday" name="checkbox-saturday" value="available-saturday">
+          <span>Saturday</span>
+          <div id="available-saturday-input-slider">
+          <input type="text" class="slider-time-saturday" name="availability_saturday_from" value = '{{profile.availability.saturday.from}}' readonly>
+          <input type="text" class="slider-time2-saturday" name="availability_saturday_to" value = '{{profile.availability.saturday.to}}' readonly> 
+          <br><br>
+          <div class="sliders_step1">
+              <div class="slider-range" id="slider-range-saturday"></div>
+          </div></div>
+          <br>
 
-            <input type="checkbox" id="checkbox-sunday" name="checkbox-sunday" value="available-sunday">
-            <span>Sunday</span>
-            <div id="available-sunday-input-slider">
-            <input type="text" class="slider-time-sunday" name="availability_sunday_from" value = '' readonly>
-            <input type="text" class="slider-time2-sunday" name="availability_sunday_to" value = '' readonly> 
-            <br><br>
-            <div class="sliders_step1">
-                <div class="slider-range" id="slider-range-sunday"></div>
-            </div></div>
-            <br>
+          <input type="checkbox" id="checkbox-sunday" name="checkbox-sunday" value="available-sunday">
+          <span>Sunday</span>
+          <div id="available-sunday-input-slider">
+          <input type="text" class="slider-time-sunday" name="availability_sunday_from" value = '{{profile.availability.sunday.from}}' readonly>
+          <input type="text" class="slider-time2-sunday" name="availability_sunday_to" value = '{{profile.availability.sunday.to}}' readonly> 
+          <br><br>
+          <div class="sliders_step1">
+              <div class="slider-range" id="slider-range-sunday"></div>
+          </div></div>
+          <br>
 
-          </div>
         </div>
+      </div>
 
-    <button type="submit" class="btn btn-default">Submit</button>
+    <button type="submit" class="btn btn-default">Save</button>
   </form>
   </div>
 
@@ -814,20 +814,16 @@ body,
 
 {{else if organization}}  
   <div id="organization_form">
-  <form method="post" action="/profile/create">
-     <div class="form-group">
-      <label>Name</label>
-      <input type="text" class="form-control" placeholder="Name" name="name" value={{user.name}}>
-    </div>
+  <form method="post" action="/profile/update">
      <div class="form-group">
       <label>Organization Name</label>
-      <input type="text" class="form-control" placeholder="Organization Name" name="organization_name">
+      <input type="text" class="form-control" placeholder="Name" name="name" value={{user.name}}>
     </div>
     <div class="form-group">
       <label>Organization Role</label>
-      <input type="text" class="form-control" placeholder="Role" name="role">
+      <input type="text" class="form-control" placeholder="Role" name="role" value={{profile.role}}>
     </div>
-    <button type="submit" class="btn btn-default">Save</button>
+    <button type="submit" class="btn btn-default">Submit</button>
   </form>
   </div>
 
