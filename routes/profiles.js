@@ -35,37 +35,38 @@ router.get('/', ensureAuthenticated, function(req, res){
 	   		console.log("ERROR trying to find profiles");
 	   		throw err;
    		}
-   		console.log("profile is " + profile);
+   		console.log("profile is " + JSON.stringify(profile));
    		console.log("user is " + JSON.stringify(req.user));
 
-   		if (user_type == "volunteer"){
-	   		volunteer = 1;
-	   		organization = 0;
-	   	}
-	   	else {
-	   		volunteer = 0;
-	   		organization = 1;
-	   	}
-	   	
-		dob = formatDate(profile[0].dob, "/", 0)
+   		if (profile.length === 0) {
+			console.log("Redirecting to /profile/new");
+			res.redirect("/profile/new");
+		}
+		else {
+			if (user_type === "volunteer"){
+		   		volunteer = 1;
+		   		organization = 0;
+		   	}
+		   	else {
+		   		volunteer = 0;
+		   		organization = 1;
+		   	}
+		   	
+			dob = formatDate(profile[0].dob, "/", 0)
 
-	   	var context = {
-			profile: profile[0], 
-			error_msg: req.flash('error_msg'),
-			volunteer: volunteer,
-			organization: organization,
-			user: req.user,
-			dob: dob
-		};
+		   	var context = {
+				profile: profile[0], 
+				error_msg: req.flash('error_msg'),
+				volunteer: volunteer,
+				organization: organization,
+				user: req.user,
+				dob: dob
+			};
 
-		if (profile.length != 0){
 			console.log("Loading current user's profile")
 			res.render('profile', context);
 		}
-		else {
-			console.log("Redirecting to /profile/new")
-			res.redirect("/profile/new");
-		}
+
 	});
 });
 
@@ -82,7 +83,7 @@ router.get('/new', ensureAuthenticated, function(req, res){
 	   	}
 	   	console.log("profile is " + JSON.stringify(profile));
 
-	   	if (user_type == "volunteer"){
+	   	if (user_type === "volunteer"){
 	   		volunteer = 1;
 	   		organization = 0;
 	   	}
@@ -121,31 +122,30 @@ router.get('/edit', ensureAuthenticated, function(req, res){
 	   		throw err;
 	   	}
 	   	console.log("profile is " + JSON.stringify(profile));
-
-	   	if (user_type == "volunteer"){
-	   		volunteer = 1;
-	   		organization = 0;
-	   	}
-	   	else {
-	   		volunteer = 0;
-	   		organization = 1;
-	   	}
-
-		dob = formatDate(profile[0].dob, "-", 1)
-
-		var context = {
-			profile: profile[0], 
-			user: req.user, 
-			volunteer: volunteer,
-			organization: organization,
-			error_msg: req.flash('error_msg'),
-			dob: dob
-		};
-
-		if (profile == null){
+		if (profile.length === 0){
 			res.redirect('/profile/new');
 		}
 		else {
+		   	if (user_type === "volunteer"){
+		   		volunteer = 1;
+		   		organization = 0;
+		   	}
+		   	else {
+		   		volunteer = 0;
+		   		organization = 1;
+		   	}
+
+			dob = formatDate(profile[0].dob, "-", 1)
+
+			var context = {
+				profile: profile[0], 
+				user: req.user, 
+				volunteer: volunteer,
+				organization: organization,
+				error_msg: req.flash('error_msg'),
+				dob: dob
+			};
+
 			res.render('edit_profile', context);
 		}
 	});
@@ -153,7 +153,7 @@ router.get('/edit', ensureAuthenticated, function(req, res){
 
 // New Profile
 router.post('/create', function(req, res){
-
+	console.log(req.user)
 	var user_type = req.user.user_type;
 	var user_id = req.user.id;
 	var name = req.body.name;

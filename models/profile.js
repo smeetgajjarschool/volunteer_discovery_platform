@@ -105,27 +105,33 @@ module.exports.createProfile = function(currUser, newProfile, callback){
 }
 
 module.exports.updateProfile = function(currUser, editProfile, callback){
-	var profileEdit = new Profile({
-		uid: editProfile.uid, 
-		interests: editProfile.interests, 
-		skills: editProfile.skills, 
-		dob: editProfile.dob, 
-		availability: editProfile.availability, 
-		role: editProfile.role,
-		organization_name: editProfile.organization_name
-	});
-
-	_id = editProfile._id
-
-	profileEdit.save({_id: _id}, function(err, profileEdit){
+	console.log("*****" + editProfile._id + "******")
+	Profile.findOne({_id: editProfile._id}, function(err, profile) {
 		if(err) {
 			return console.error(err);
 		}
-		console.log("Profile has been updated.");
+		else {
+			profile.uid = editProfile.uid
+			profile.interests = editProfile.interests
+			profile.skills = editProfile.skills
+			profile.dob = editProfile.dob
+			profile.availability = editProfile.availability
+			profile.role = editProfile.role
+			profile.organization_name = editProfile.organization_name
+			
+			profile.update({_id: editProfile._id}, function(err, profile) {
+				if (err){
+					console.log(err)
+				}
+				else{
+					console.log("Profile has been updated.");
+				}
+			});
+		}
 	});
 }
 
-module.exports.getProfileByUId = function(username, callback){
+module.exports.getProfileByUId = function(uid, callback){
 	var query = {uid: uid};
 	Profile.findOne(query, callback);
 }
