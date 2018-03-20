@@ -27,17 +27,16 @@ Hi volunteer, {{user.name}}
  </div>
 
 
-        {{#if user_apps}}
-        <h3>Applications:</h3>
+        {{#if events}}
+        <h3>Events:</h3>
         <br>
         <div class="container">
-        {{#each user_apps}}
+        {{#each events}}
         <div class="row">
-             <h4 style="display: inline;vertical-align: center;">{{event.event_name}}</h4> 
-             <p style="display: inline;vertical-align: center;color:red"> {{application.status}}</p>
+             <h4 style="display: inline;vertical-align: center;">{{event_name}}</h4> 
+             <p style="display: inline;vertical-align: center;color:red">Lat/Lon: {{lat}}/{lng}}</p>
              <br>
-             <p style="display: inline;vertical-align: center;"> {{organization_name}} - </p>
-             <p style="display: inline;vertical-align: center;"> {{application.created_time}}</p>
+             <p style="display: inline;vertical-align: center;"> {{event_start_date}} - {{event_end_date}}</p>
 
         </div>
         <br>
@@ -51,7 +50,6 @@ Hi volunteer, {{user.name}}
 
 
 <script>
-
 
 function querySearch(query) {
         $.ajax({
@@ -161,6 +159,7 @@ var search_input = ''
 
 //initializing page load with all search results
   query = {
+    size: 100,
     query: {
       match_all: {}
     },

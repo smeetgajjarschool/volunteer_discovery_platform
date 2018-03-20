@@ -7,11 +7,6 @@
   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
   crossorigin="anonymous"></script>
 
-<script src="/js/moment.min.js"></script>
- 
- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css" />
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
 
 <head>
 <style>
@@ -22,82 +17,136 @@ body,
   padding: 0;
   height: 100%;
 }
+body {
+  font: normal 14px/100% "Andale Mono", AndaleMono, monospace;
+  color: #fff;
+  background-color: #374954;
+}
 
+.dropdown {
+  position: absolute;
+  top:50%;
+  transform: translateY(-50%);
+}
+
+a {
+  color: #fff;
+}
+
+.dropdown dd,
+.dropdown dt {
+  margin: 0px;
+  padding: 0px;
+}
+
+.dropdown ul {
+  margin: -1px 0 0 0;
+}
+
+.dropdown dd {
+  position: relative;
+}
+
+.dropdown a,
+.dropdown a:visited {
+  color: #fff;
+  text-decoration: none;
+  outline: none;
+  font-size: 12px;
+}
+
+.dropdown dt a {
+  background-color: #4F6877;
+  display: block;
+  padding: 8px 20px 5px 10px;
+  min-height: 25px;
+  line-height: 24px;
+  overflow: hidden;
+  border: 0;
+  width: 272px;
+}
+
+.dropdown dt a span,
+.multiSel span {
+  cursor: pointer;
+  display: inline-block;
+  padding: 0 3px 2px 0;
+}
+
+.dropdown dd ul {
+  background-color: #4F6877;
+  border: 0;
+  color: #fff;
+  display: none;
+  left: 0px;
+  padding: 2px 15px 2px 5px;
+  position: absolute;
+  top: 2px;
+  width: 280px;
+  list-style: none;
+  height: 100px;
+  overflow: auto;
+}
+
+.dropdown span.value {
+  display: none;
+}
+
+.dropdown dd ul li a {
+  padding: 5px;
+  display: block;
+}
+
+.dropdown dd ul li a:hover {
+  background-color: #fff;
+}
+
+button {
+  background-color: #6BBE92;
+  width: 302px;
+  border: 0;
+  padding: 10px 0;
+  margin: 5px 0;
+  text-align: center;
+  color: #fff;
+  font-weight: bold;
+}
 </style>
 </head>
 
 
 
- <h2 class="page-header">Events</h2>
 
 
-{{#ifEquals user.user_type "organization"}}
-<h2>
-Hi, {{user.name}}
-</h2>
-<hr>
-<h4>
-Create a new volunteer oppurtunity:
-</h4>
+<h2 class="page-header">Data for Machine Learning</h2>
+{{#if errors}}
+      {{#each errors}}
+        <div class="alert alert-danger">{{msg}}</div>
+      {{/each}}
+{{/if}}
 
-<div id="event_create">
-<form method="post" action="/events">
+
+<div id="data_form">
+<form method="post" action="/data">
    <div class="form-group">
-    <label>Event Name</label>
-    <input type="text" class="form-control" placeholder="Name" name="name">
+    <label>Name</label>
+    <input type="text" class="form-control" placeholder="Name" name="name" required>
   </div>
 
-   <div class="form-group">
-    <label>Event Start-Date</label>
-
-
-            <div class='input-group date' id='datetimepicker6'>
-                <input type='text' name="start_date" class="form-control" />
-                <span class="input-group-addon">
-                    <span class="glyphicon glyphicon-calendar"></span>
-                </span>            
-
-            </div>
-
-    <label>Event End-Date</label>
-
-                        <div class='input-group date' id='datetimepicker7'>
-                <input type='text' name="end_date" class="form-control" />
-                <span class="input-group-addon">
-                    <span class="glyphicon glyphicon-calendar"></span>
-                </span>
-            </div>
-
-  </div>
-
-<label>Event Location</label>
-  <input id="pac-input" class="controls" type="text" placeholder="Search Box">
+<label>Location</label>
+  <input id="pac-input" class="controls" type="text" placeholder="Search Box" style="color:black">
 <div class="container" id="map-canvas" style="height:300px;"></div>
 
+<br>
     <div class="form-group">
     <label>Lat</label>
-    <input type="text" id="latInput" class="form-control" placeholder="" name="lat" readonly>
+    <input type="text" id="latInput" class="form-control" placeholder="" name="lat" required>
   </div>
 
 
   <div class="form-group">
     <label>Lng</label>
-    <input type="text" id="lngInput" class="form-control" placeholder="" name="lng" readonly>
-  </div>
-
-  <div class="form-group">
-  <label>Event Type</label>
-  <select name="event_type">
-    <option value="tree_planting">Tree Planting</option>
-    <option value="flyering">Flyering</option>
-    <option value="cleaning">Cleaning</option>
-    <option value="general">General</option>
-  </select>
-  </div>
-
-  <div class="form-group">
-    <label>Organization user id</label>
-  <input type="text" id="" class="form-control" value="{{user.id}}" name="organization_id" readonly>
+    <input type="text" id="lngInput" class="form-control" placeholder="" name="lng" required>
   </div>
 
 
@@ -233,41 +282,41 @@ Create a new volunteer oppurtunity:
     </div>
 
 
-  <button type="submit" class="btn btn-success" style="width:100%">Submit</button>
+      <div class="form-group">
+            <div class="mutliSelect">
+
+              {{#if events}}
+              <h3>Events:</h3>
+              <br>
+              <div class="container">
+              {{#each events}}
+              <div class="row">
+                   <h4 style="display: inline;vertical-align: center;color:red">{{event_name}}</h4> 
+                   <p style="display: inline;vertical-align: center;color:grey">Lat/Lon: {{lat}}/{{lng}}</p>
+                   <br>
+                   <p style="display: inline;vertical-align: center;color:grey"> {{event_start_date}} - {{event_end_date}}</p>
+
+                    <input type="checkbox" name="eventid_{{_id}}" />
+
+
+              </div>
+              <br>
+              <hr>
+              {{/each}}
+              </div>
+              {{/if}}
+
+            </div>
+        </div>
+
+    <button type="submit" class="btn btn-primary" style="width:100%">Submit</button>
+
 </form>
 </div>
-<hr>
+<br>
 
-
-{{#if events}}
-<div>
-  <h2>Created Events</h2>
-    <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Event Name</th>
-        <th>Start Date</th>
-        <th>End Date</th>
-        <th>Lat/Lng</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{#each events}}
-      <tr>
-        <td>{{event_name}}</td>
-        <td>{{event_start_date}}</td>
-        <td>{{event_end_date}}</td>
-        <td>{{lat}}/{{lng}}</td>
-      </tr>
-      {{/each}}
-    </tbody>
-  </table>
-</div>
-{{/if}}
 
 <script>
-
-
 
 function init() {
    var map = new google.maps.Map(document.getElementById('map-canvas'), {
@@ -326,21 +375,7 @@ function init() {
 
 
 
+
 google.maps.event.addDomListener(window, 'load', init);
 
-    $(function () {
-        $('#datetimepicker6').datetimepicker();
-        $('#datetimepicker7').datetimepicker({
-            useCurrent: false //Important! See issue #1075
-        });
-        $("#datetimepicker6").on("dp.change", function (e) {
-            $('#datetimepicker7').data("DateTimePicker").minDate(e.date);
-        });
-        $("#datetimepicker7").on("dp.change", function (e) {
-            $('#datetimepicker6').data("DateTimePicker").maxDate(e.date);
-        });
-    });
-
 </script>
-
-{{/ifEquals}}

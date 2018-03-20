@@ -11,6 +11,7 @@ var client = new elasticsearch.Client({
 var Event = require('../models/events');
 var Application = require('../models/applications');
 var User = require('../models/user.js');
+var Data = require('../models/data.js');
 
 // Get Homepage
 router.get('/', ensureAuthenticated, function(req, res){
@@ -340,6 +341,10 @@ router.post('/events', function(req, res){
 	var organization_id = req.body.organization_id;
 	var event_type = req.body.event_type;
 
+	var skills = [];
+	var interests = [];
+	var eventids = [];
+
 	// Validation
 	req.checkBody('name', 'Event Name is required').notEmpty();
 	req.checkBody('lat', 'Location is required').notEmpty();
@@ -352,18 +357,35 @@ router.post('/events', function(req, res){
 
 	var errors = req.validationErrors();
 
+
+
 	if(errors){
 		res.render('events',{
 			errors:errors
 		});
 	} else {
+
+		for (var key in req.body) {
+			console.log(key);
+			if (key.indexOf("skill") !== -1){
+					skills.push(key.replace("skill_",""));
+
+			}
+			else if (key.indexOf("interest") !== -1){
+					interests.push(key.replace("interest_",""));
+
+			}
+		}
+
 		var newEvent = new Event({
 			event_name: name,
 			event_start_date: start_date,
 			event_end_date: end_date,
 			lat: lat,
 			lng: lng,
-			organization_id: organization_id
+			organization_id: organization_id,
+			skills: skills,
+			interests: interests
 		});
 
 
@@ -405,6 +427,68 @@ router.post('/events', function(req, res){
 };
 
 });
+
+
+router.get('/data',  function(req, res){
+
+	Event.find({}, function(err, events){
+
+
+					var context = {user : req.user, events : events };
+					res.render('data', context);
+	});
+
+
+	});
+
+router.post('/data', function(req, res){
+
+		console.log("ML data received: " + JSON.stringify(req.params) + " " + JSON.stringify(req.body));
+
+		var skills = [];
+		var interests = [];
+		var eventids = [];
+
+		for (var key in req.body) {
+			console.log(key);
+
+			if (key.indexOf("skill") !== -1){
+				skills.push(key.replace("skill_",""));
+
+			}
+			else if (key.indexOf("interest") !== -1){
+				interests.push(key.replace("interest_",""));
+
+			}
+			else if (key.indexOf("eventid") !== -1){
+				eventids.push(key.replace("eventid_",""));
+			}
+		}
+
+
+	console.log("skills are: " + JSON.stringify(skills) + " interests are: " +  JSON.stringify(interests) + " eventids are: " + JSON.stringify(eventids));
+	req.checkBody('name', 'Event Name is required').notEmpty();
+	req.checkBody('lat', 'Location is required').notEmpty();
+	req.checkBody('lng', 'Location is required').notEmpty();
+
+		var newData = new Data({
+			name: req.body.name,
+			lat: req.body.lat,
+			lng: req.body.lng,
+			skills: skills,
+			interests: interests,
+			past_events: eventids,
+		});
+
+			Data.createData(newData, function(err, user){
+
+						res.redirect('/data');
+
+			})
+
+
+});
+
 
 function ensureAuthenticated(req, res, next){
 	if(req.isAuthenticated()){

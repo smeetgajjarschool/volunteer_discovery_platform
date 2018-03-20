@@ -22,6 +22,12 @@ var EventSchema = mongoose.Schema({
 		type: Number
 	},
 	created_time: { type: Date, default: Date.now },
+		skills: {
+		type: Array,
+	},
+		interests: {
+		type: Array,
+	},
 });
 
 
