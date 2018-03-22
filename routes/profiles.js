@@ -232,6 +232,7 @@ router.post('/create', function(req, res){
 		}
 		else {
 			newProfile = new Profile({
+				uid: req.user.id,
 				role: role,
 				organization_name: organization_name
 			});
