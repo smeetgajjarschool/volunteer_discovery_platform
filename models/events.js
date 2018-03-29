@@ -21,10 +21,16 @@ var EventSchema = mongoose.Schema({
 		lng: {
 		type: Number
 	},
+		status: {
+		type: String,
+		default: "open"
+	},
+		num_volunteers: {
+		type: Number,
+		default: 1
+	},
 	created_time: { type: Date, default: Date.now },
 });
-
-
 
 
 var Event = module.exports = mongoose.model('Event', EventSchema);
