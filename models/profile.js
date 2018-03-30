@@ -111,7 +111,6 @@ module.exports.updateProfile = function(currUser, editProfile, callback){
 			return console.error(err);
 		}
 		else {
-			profile.uid = editProfile.uid
 			profile.interests = editProfile.interests
 			profile.skills = editProfile.skills
 			profile.dob = editProfile.dob
@@ -119,13 +118,11 @@ module.exports.updateProfile = function(currUser, editProfile, callback){
 			profile.role = editProfile.role
 			profile.organization_name = editProfile.organization_name
 			
-			profile.update({_id: editProfile._id}, function(err, profile) {
-				if (err){
-					console.log(err)
+			profile.save(function(err, profile){
+				if(err) {
+					return console.error(err);
 				}
-				else{
-					console.log("Profile has been updated.");
-				}
+				console.log("Profile has been updated.");
 			});
 		}
 	});

@@ -26,6 +26,7 @@ var users = require('./routes/users');
 var profiles = require('./routes/profiles');
 var friends = require('./routes/friends');
 var subscribers = require('./routes/subscribers');
+var reviews = require('./routes/reviews')
 
 // Initializing app
 var app = express();
@@ -159,6 +160,7 @@ app.use('/users', users);
 app.use('/profile', profiles);
 app.use('/friends', friends);
 app.use('/subscribe', subscribers);
+app.use('/review', reviews)
 
 var users = [
 

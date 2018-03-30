@@ -16,7 +16,7 @@ var ReviewSchema = mongoose.Schema({
 	}],
 	rating: {
 		type: Number
-	}
+	},
 	created_time: { type: Date, default: Date.now },
 });
 
@@ -47,12 +47,13 @@ module.exports.updateReview = function(currUser, editReview, callback){
 			return console.error(err);
 		}
 		else {
+			/*
 			review_by_id: newReview.review_by_id, 
 			review_for_id: newReview.review_for_id, 
 			event_id: newReview.event_id, 
 			review: newReview.review, 
 			rating: newReview.rating
-				
+				*/
 			review.update({_id: editReview._id}, function(err, review) {
 				if (err){
 					console.log(err)
