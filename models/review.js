@@ -47,20 +47,15 @@ module.exports.updateReview = function(currUser, editReview, callback){
 			return console.error(err);
 		}
 		else {
-			/*
-			review_by_id: newReview.review_by_id, 
-			review_for_id: newReview.review_for_id, 
-			event_id: newReview.event_id, 
-			review: newReview.review, 
-			rating: newReview.rating
-				*/
-			review.update({_id: editReview._id}, function(err, review) {
+			review.review = editReview.review
+			review.rating = editReview.rating
+				
+			review.save(function(err, review) {
 				if (err){
 					console.log(err)
 				}
-				else{
-					console.log("Review has been updated.");
-				}
+				
+				console.log("Review has been updated.");
 			});
 		}
 	});

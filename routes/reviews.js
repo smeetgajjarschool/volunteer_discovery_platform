@@ -5,7 +5,7 @@ var LocalStrategy = require('passport-local').Strategy;
 var path = require('path');
 
 
-var Profile = require('../models/review');
+var Review = require('../models/review');
 
 function formatDate(date, separator, format) {
     var d = new Date(date),
@@ -25,22 +25,23 @@ function formatDate(date, separator, format) {
 
 }
 
+/*
 router.get('/', ensureAuthenticated, function(req, res){
-	var profile;
+	var review;
 	var query = {uid: req.user.id};
 	var user_type = req.user.user_type;	
 
-	Profile.find(query, function(err, profile){
+	Review.find(query, function(err, review){
 		if(err) {
-	   		console.log("ERROR trying to find profiles");
+	   		console.log("ERROR trying to find reviews");
 	   		throw err;
    		}
-   		console.log("profile is " + JSON.stringify(profile));
+   		console.log("review is " + JSON.stringify(review));
    		console.log("user is " + JSON.stringify(req.user));
 
-   		if (profile.length === 0) {
-			console.log("Redirecting to /profile/new");
-			res.redirect("/profile/new");
+   		if (review.length === 0) {
+			console.log("Redirecting to /review/new");
+			res.redirect("/review/new");
 		}
 		else {
 			if (user_type === "volunteer"){
@@ -52,10 +53,10 @@ router.get('/', ensureAuthenticated, function(req, res){
 		   		organization = 1;
 		   	}
 		   	
-			dob = formatDate(profile[0].dob, "/", 0)
+			dob = formatDate(review[0].dob, "/", 0)
 
 		   	var context = {
-				profile: profile[0], 
+				review: review[0], 
 				error_msg: req.flash('error_msg'),
 				volunteer: volunteer,
 				organization: organization,
@@ -63,67 +64,88 @@ router.get('/', ensureAuthenticated, function(req, res){
 				dob: dob
 			};
 
-			console.log("Loading current user's profile")
-			res.render('profile', context);
+			console.log("Loading current user's review")
+			res.render('review', context);
 		}
 
 	});
 });
+*/
 
-// New Profile
+// New Review
 router.get('/new', ensureAuthenticated, function(req, res){
-	var profile;
-	var query = {uid: req.user.id};
+	var review;
+	var query = {
+		event: req.body.event_id,
+		review_by: req.user._id,
+		review_for: req.body.review_for
+	};
 	var user_type = req.user.user_type;	
 
-	Profile.find(query, function(err, profile){
+	Review.find(query, function(err, review){
 	   	if(err) {
-	   		console.log("ERROR trying to find profiles");
+	   		console.log("ERROR trying to find reviews");
 	   		throw err;
 	   	}
-	   	console.log("profile is " + JSON.stringify(profile));
+	   	console.log("review is " + JSON.stringify(review));
 
-	   	if (user_type === "volunteer"){
-	   		volunteer = 1;
-	   		organization = 0;
-	   	}
-	   	else {
-	   		volunteer = 0;
-	   		organization = 1;
-	   	}
+		if (review.length === 0){
 
-		var context = {
-			profile: profile[0], 
-			error_msg: req.flash('error_msg'),
-			volunteer: volunteer,
-			organization: organization,
-			user: req.user
-		};
+		   	var query2 = {
+				_id: query.event
+			};
 
-		if (profile.length === 0){
-			res.render('new_profile', context);
+			Event.find(query2, function(err, event){
+			   	if(err) {
+			   		console.log("ERROR trying to find events");
+			   		throw err;
+			   	}
+
+			   	var query3 = {
+					_id: query.review_for
+				};
+
+			   	User.find(query3, function(err, review_for){
+				   	if(err) {
+				   		console.log("ERROR trying to find user");
+				   		throw err;
+				   	}
+
+					var context = {
+						review: review[0], 
+						review_for: review_for,
+						event: event,
+						error_msg: req.flash('error_msg'),
+						user: req.user
+					};
+
+					res.render('new_review', context);
+
+				});
+		   	});
+
 		}
 		else {
-			res.redirect("/profile/edit");
+			res.redirect("/review/edit");
 		}
 	});
 });
 
-// Edit Profile
+// Edit Review
 router.get('/edit', ensureAuthenticated, function(req, res){
-	var profile;
+	var review;
 	var query = {uid: req.user.id};
 	var user_type = req.user.user_type;
 	var user_id = req.user.id;
 
-	Profile.find(query, function(err, profile){
+	Review.find(query, function(err, review){
 	   	if(err) {
-	   		console.log("ERROR trying to find profiles");
+	   		console.log("ERROR trying to find reviews");
 	   		throw err;
 	   	}
-	   	console.log("profile is " + JSON.stringify(profile));
-		if (profile.length === 0){
-			res.redirect('/profile/new');
+	   	console.log("review is " + JSON.stringify(review));
+		if (review.length === 0){
+			res.redirect('/review/new');
 		}
 		else {
 		   	if (user_type === "volunteer"){
@@ -135,10 +157,10 @@ router.get('/edit', ensureAuthenticated, function(req, res){
 		   		organization = 1;
 		   	}
 
-			dob = formatDate(profile[0].dob, "-", 1)
+			dob = formatDate(review[0].dob, "-", 1)
 
 			var context = {
-				profile: profile[0], 
+				review: review[0], 
 				user: req.user, 
 				volunteer: volunteer,
 				organization: organization,
@@ -146,216 +168,116 @@ router.get('/edit', ensureAuthenticated, function(req, res){
 				dob: dob
 			};
 
-			res.render('edit_profile', context);
+			res.render('edit_review', context);
 		}
 	});
 });
 
-// New Profile
+// New Review
 router.post('/create', function(req, res){
 	console.log(req.user)
-	var user_type = req.user.user_type;
-	var user_id = req.user.id;
-	var name = req.body.name;
-	var dob = req.body.dob;
-	var interests = req.body.interests;
-	console.log(interests);
-	var skills = req.body.skills;
-		console.log(skills);
-
-	var dob = req.body.dob;
-	var availability = {
-		monday: {
-			from: req.body.availability_monday_from,
-			to: req.body.availability_monday_to
-		},
-		tuesday: {
-			from: req.body.availability_tuesday_from,
-			to: req.body.availability_tuesday_to
-		},
-		wednesday: {
-			from: req.body.availability_wednesday_from,
-			to: req.body.availability_wednesday_to
-		},
-		thursday: {
-			from: req.body.availability_thursday_from,
-			to: req.body.availability_thursday_to
-		},
-		friday: {
-			from: req.body.availability_friday_from,
-			to: req.body.availability_friday_to
-		},
-		saturday: {
-			from: req.body.availability_saturday_from,
-			to: req.body.availability_saturday_to
-		},
-		sunday: {
-			from: req.body.availability_sunday_from,
-			to: req.body.availability_sunday_to
-		}
-	};
-
-	var role = req.body.role;
-	console.log(availability);
-	var organization_name = req.body.organization_name;
+	var review_by = req.user.id;
+	var event_id = req.body.event_id;
+	var review_for = req.body.review_for;
+	var review = req.body.review;
+	var rating = req.body.rating;
 
 	// Validation
-	if (user_type == "volunteer"){
-		req.checkBody('name', 'Name is required').notEmpty();
-		req.checkBody('dob', 'Date of Birth is required').notEmpty();
-		req.checkBody('interests', 'An interest is required').notEmpty();
-		req.checkBody('skills', 'A skill is required').notEmpty();
-	}
-	else {
-		req.checkBody('organization_name', 'Organization Name is required').notEmpty();
-		req.checkBody('role', 'Role is required').notEmpty();
-	}
+	req.checkBody('review', 'Review is required').notEmpty();
+	req.checkBody('rating', 'Rating is required').notEmpty();
 
 	var errors = req.validationErrors();
 
 	if(errors){
-		res.render('new_profile',{
+		res.render('new_review',{
 			errors:errors, 
-			name: name
+			name: name,
+			user: req.user, 
+			volunteer: volunteer,
+			organization: organization,
+			dob: dob
 		});
 	} 
 	else {
-		var newProfile;
-		if (user_type == "volunteer"){
-			newProfile = new Profile({
-				uid: req.user.id,
-				dob:dob,
-				interests: interests,
-				skills: skills,
-				availability: availability
-			});
-		}
-		else {
-			newProfile = new Profile({
-				uid: req.user.id,
-				role: role,
-				organization_name: organization_name
-			});
-		}
-
-		Profile.createProfile(req.user, newProfile, function(err, profile){
-			if(err) throw err;
-			console.log(profile);
+		var newReview;
+		newReview = new Review({
+			review_by: review_by,
+			event_id: event_id,
+			review_for: review_for,
+			review: review,
+			rating: rating
 		});
 
-		req.flash('success_msg', 'You have successfully created your profile.');
+		Review.createReview(req.user, newReview, function(err, review){
+			if(err) throw err;
+			console.log(review);
 
-		res.redirect('/profile');
+			req.flash('success_msg', 'You have successfully created your review.');
+
+			res.redirect('/review');
+
+		});
 	}
 });
 
 router.post('/update', function(req, res){
 
-	var user_type = req.user.user_type;
-	var user_id = req.user.id;
-	var name = req.body.name;
-	var dob = req.body.dob;
-	var interests = req.body.interests;
-	console.log(interests);
-	var skills = req.body.skills;
-		console.log(skills);
-
-	var dob = req.body.dob;
-	var availability = {
-		monday: {
-			from: req.body.availability_monday_from,
-			to: req.body.availability_monday_to
-		},
-		tuesday: {
-			from: req.body.availability_tuesday_from,
-			to: req.body.availability_tuesday_to
-		},
-		wednesday: {
-			from: req.body.availability_wednesday_from,
-			to: req.body.availability_wednesday_to
-		},
-		thursday: {
-			from: req.body.availability_thursday_from,
-			to: req.body.availability_thursday_to
-		},
-		friday: {
-			from: req.body.availability_friday_from,
-			to: req.body.availability_friday_to
-		},
-		saturday: {
-			from: req.body.availability_saturday_from,
-			to: req.body.availability_saturday_to
-		},
-		sunday: {
-			from: req.body.availability_sunday_from,
-			to: req.body.availability_sunday_to
-		}
-	};
-
-	var role = req.body.role;
-	var organization_name = req.body.organization_name;
-	console.log(availability);
+	console.log(req.user)
+	var review_by = req.user.id;
+	var event_id = req.body.event_id;
+	var review_for = req.body.review_for;
+	var review = req.body.review;
+	var rating = req.body.rating;
 
 	// Validation
-	if (user_type == "volunteer"){
-		req.checkBody('name', 'Name is required').notEmpty();
-		req.checkBody('dob', 'Date of Birth is required').notEmpty();
-		req.checkBody('interests', 'An interest is required').notEmpty();
-		req.checkBody('skills', 'A skill is required').notEmpty();
-	}
-	else {
-		req.checkBody('organization_name', 'Organization Name is required').notEmpty();
-		req.checkBody('role', 'Role is required').notEmpty();
-	}
+	req.checkBody('review', 'Review is required').notEmpty();
+	req.checkBody('rating', 'Rating is required').notEmpty();
 
 	var errors = req.validationErrors();
 
 	if(errors){
-		res.render('edit_profile',{
+		res.render('new_review',{
 			errors:errors, 
-			name: name
+			name: name,
+			user: req.user, 
+			volunteer: volunteer,
+			organization: organization,
+			dob: dob
 		});
 	} 
 	else {
-		var profile;
-		query = {uid: req.user.id};
+		var review;
+		query = {
+			review_by: review_by,
+			event_id: event_id,
+			review_for: review_for
+		};
 
-		Profile.find(query, function(err, profile){
+		Review.find(query, function(err, review){
 		   	if(err) {
-		   		console.log("ERROR trying to find profiles");
+		   		console.log("ERROR trying to find reviews");
 		   		throw err;
 		   	}
-		   	console.log("profile is " + JSON.stringify(profile));
+		   	console.log("review is " + JSON.stringify(review));
 
-			var pid = profile[0]._id;
-
-			var editProfile;
-			if (user_type == "volunteer"){
-				editProfile = new Profile({
-					_id: pid,
-					uid: req.user_id,
-					dob:dob,
-					interests: interests,
-					skills: skills,
-					availability: availability
-				});
-			}
-			else {
-				editProfile = new Profile({
-					_id: pid,
-					role: role,
-					organization_name: organization_name
-				});
-			}
-
-			Profile.updateProfile(req.user, editProfile, function(err, profile){
-				if(err) throw err;
-				console.log(profile);
+			var editReview;
+			editReview = new Review({
+				_id: review._id,
+				review_by: review_by,
+				event_id: event_id,
+				review_for: review_for,
+				review: review,
+				rating: rating
 			});
 
-			req.flash('success_msg', 'You have successfully edited your profile.');
+			Review.updateReview(req.user, editReview, function(err, review){
+				if(err) throw err;
+				console.log(review);
 
-			res.redirect('/profile');
+				req.flash('success_msg', 'You have successfully edited your review.');
+				res.redirect('/profile');
+
+			});
 
 		});
 	}
