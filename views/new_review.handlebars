@@ -1,0 +1,43 @@
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<h2 class="page-header">Create a Review</h2>
+{{#if errors}}
+      {{#each errors}}
+        <div class="alert alert-danger">{{msg}}</div>
+      {{/each}}
+{{/if}}
+
+<div id="review_form">
+  <form method="post" action="/review/create">
+    <div class="form-group">
+      <label>Event</label>
+      <input type="text" class="form-control" name="event_name" value="{{event.event_name}}" readonly>
+      <input type="hidden" name="event_id" value="{{event._id}}">
+    </div>
+
+   	<div class="form-group">
+    	<label>Review By</label>
+    	<input type="text" class="form-control" name="review_by_name" value="{{user.name}}" readonly>
+  	</div>
+
+  	<div class="form-group">
+    	<label>Review For</label>
+    	<input type="text" class="form-control" name="review_for_name" value="{{review_for.name}}" readonly>        
+      <input type="hidden" name="review_for" value="{{review_for._id}}">
+  	</div>
+
+  	<div class="form-group">
+			<label>Review</label>
+	    <input type="text" class="form-control" placeholder="Review" name="review">
+  	</div>
+
+    <div class="form-group">
+      <label>Rating</label>
+        <input type="number" class="form-control" placeholder="Rating" step="0.5" min="1" max="5" value=5 name="rating">
+    </div>
+
+    <button type="submit" class="btn btn-default">Submit</button>
+  </form>
+</div>

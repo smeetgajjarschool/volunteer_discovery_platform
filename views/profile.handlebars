@@ -58,6 +58,22 @@ body,
         <th colspan="2">Sunday</th>
       </tr>
       <tr>
+        <th>From</th>
+        <th>To</th>
+        <th>From</th>
+        <th>To</th>
+        <th>From</th>
+        <th>To</th>
+        <th>From</th>
+        <th>To</th>
+        <th>From</th>
+        <th>To</th>
+        <th>From</th>
+        <th>To</th>
+        <th>From</th>
+        <th>To</th>
+      </tr>
+      <tr>
         <td>{{profile.availability.monday.from}}</td>
         <td>{{profile.availability.monday.to}}</td>
         <td>{{profile.availability.tuesday.from}}</td>
@@ -73,6 +89,33 @@ body,
         <td>{{profile.availability.sunday.from}}</td>
         <td>{{profile.availability.sunday.to}}</td>
       </tr>
+    </table>
+    <br><br>
+    <table class="table table-striped">
+      <tr>
+        <th colspan="5">Pending Reviews</th>
+      </tr>
+      <tr>
+        <th>Event Name</th>
+        <th>Review For</th>
+        <th>Fill Out Review</th>
+      </tr>
+      {{#each pending_reviews}}
+      {{#each this}}
+        <tr>
+          <tr>
+          <td>{{this.event_name}}</td>
+          <td>{{this.review_for_name}}</td>
+          <td>
+            <form action="/review/new" method="post">
+              <input type="hidden" value="{{event_id}}" name="event_id">                     
+              <input type="hidden" value="{{review_for_id}}" name="review_for">                     
+              <input type="submit" class="btn btn-primary" value="Fill Review">
+            </form>
+          </td>
+        </tr>
+        {{/each}}
+      {{/each}}
     </table>
   </div>
 {{else if organization}}  
@@ -90,6 +133,33 @@ body,
         <th>Organization Role</th>
         <td>{{profile.role}}</td>
       </tr>
+    </table>
+    <br><br>
+    <table class="table table-striped">
+      <tr>
+        <th colspan="5">Pending Reviews</th>
+      </tr>
+      <tr>
+        <th>Event Name</th>
+        <th>Review For</th>
+        <th>Fill Out Review</th>
+      </tr>
+      {{#each pending_reviews}}
+      {{#each this}}
+        <tr>
+          <tr>
+          <td>{{this.event_name}}</td>
+          <td>{{this.review_for_name}}</td>
+          <td>
+            <form action="/review/new" method="post">
+              <input type="hidden" value="{{event_id}}" name="event_id">                     
+              <input type="hidden" value="{{review_for_id}}" name="review_for">                     
+              <input type="submit" class="btn btn-primary" value="Fill Review">
+            </form>
+          </td>
+        </tr>
+      {{/each}}
+      {{/each}}
     </table>
   </div>
 {{/if}}
