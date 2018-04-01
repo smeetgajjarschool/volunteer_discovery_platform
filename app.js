@@ -16,15 +16,17 @@ var cors = require('cors')
 var mongo = require('mongodb');
 var mongoose = require('mongoose');
 
-//var db = mongojs('customerapp', ['users']);
 mongoose.connect('mongodb://localhost/loginapp');
 var db = mongoose.connection;
+//mongoose.connect('mongodb://user2:password@ds251588.mlab.com:51588/volunteer-cloud');
+//var db = mongoose.connection;
 
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var profiles = require('./routes/profiles');
 var friends = require('./routes/friends');
+var subscribers = require('./routes/subscribers');
 
 // Initializing app
 var app = express();
@@ -86,12 +88,12 @@ Handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
 });
 
 
-var mongo = require('mongodb');
-var mongoose = require('mongoose');
+// var mongo = require('mongodb');
+// var mongoose = require('mongoose');
 
-//var db = mongojs('customerapp', ['users']);
-mongoose.connect('mongodb://localhost/loginapp');
-var db = mongoose.connection;
+// //var db = mongojs('customerapp', ['users']);
+// mongoose.connect('mongodb://localhost/loginapp');
+// var db = mongoose.connection;
 
 
 var routes = require('./routes/index');
@@ -102,7 +104,7 @@ var users = require('./routes/users');
 
 // Body Parser Middleware
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended:false}));
+app.use(bodyParser.urlencoded({extended:true}));
 app.use(cookieParser());
 
 // Set Static Path
@@ -157,6 +159,7 @@ app.use('/', routes);
 app.use('/users', users);
 app.use('/profile', profiles);
 app.use('/friends', friends);
+app.use('/subscribe', subscribers);
 
 var users = [
 

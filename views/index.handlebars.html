@@ -63,9 +63,13 @@ Hi, {{user.name}}
 
 function querySearch(query) {
         $.ajax({
-        url: "http://localhost:9200/test_events4/_search/",
+        url: "http://http://35.227.88.126/elasticsearch/test_events4/_search/",
         type: 'post',
         dataType: 'json',
+        headers:{
+          'Authorization': 'Basic ' + btoa('user:nruXvt3KXJ2R')
+        },
+
         success: function(data) {
             //console.log("Success" + JSON.stringify(data["aggregations"]["event_types"]["buckets"]));
 

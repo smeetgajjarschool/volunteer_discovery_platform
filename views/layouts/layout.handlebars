@@ -4,12 +4,19 @@
   <title>Volunteer Discovery Platform</title>
   <link rel="stylesheet" href="/css/bootstrap.css" />
   <link rel="stylesheet" href="/css/style.css" />
+    <link href="https://fonts.googleapis.com/css?family=Rajdhani" rel="stylesheet">
+
   <script
   src="https://code.jquery.com/jquery-3.2.1.min.js"
   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
   crossorigin="anonymous"></script>
   
   <style>
+    body {
+
+    font-family: 'Rajdhani', sans-serif;
+
+  }
     hr {
       margin-top: 0px; 
       margin-bottom: 0px;
@@ -24,6 +31,7 @@
           <ul class="nav nav-pills pull-right">
             {{#if user}}
               <li role="presentation"><a href="/">Dashboard</a></li>
+              <li role="presentation"><a href="/profile">Profile</a></li>
               <li role="presentation"><a href="/friends">Friends</a></li>
               <li role="presentation"><a href="/users/logout">Logout</a></li>
             {{else}}
@@ -32,7 +40,7 @@
             {{/if}}
           </ul>
         </nav>
-        <h3 class="text-muted">Volunteer Discovery Platform</h3>
+        <a href="http://localhost:3050/"> <h3 class="text-muted">Volunteer Discovery Platform</h3> </a>
       </div>
 
 

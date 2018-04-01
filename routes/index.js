@@ -2,16 +2,29 @@ var express = require('express');
 var router = express.Router();
 var elasticsearch = require('elasticsearch');
 
+var nodemailer = require('nodemailer');
+var mg = require('nodemailer-mailgun-transport');
+var cron = require('cron');
+var ObjectId = require('mongoose').Types.ObjectId; 
+var mongo = require('mongodb');
+var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
 
 var client = new elasticsearch.Client({
   host: 'localhost:9200',
   log: 'trace'
 });
 
+
+//mongoose.connect('mongodb://user2:password@ds251588.mlab.com:51588/volunteer-cloud');
+//var db = mongoose.connection;
+
 var Event = require('../models/events');
 var Application = require('../models/applications');
 var User = require('../models/user.js');
 var Data = require('../models/data.js');
+var Subscriber = require('../models/subscriber');
+var GlobalSubscriber = require('../models/global_subscriber_num.js');
 
 // Get Homepage
 router.get('/', ensureAuthenticated, function(req, res){
@@ -32,29 +45,55 @@ router.get('/', ensureAuthenticated, function(req, res){
 
 				var promises = applications.map(function(application){
 
-					//get event name, start, and end date		
-					if (application.event_id != '') {
+					return new Promise(function(resolve, reject) {
 
-								Event.findById(application.event_id, function(err, event){
-									if(err) throw err;
+									console.log("starting promise");
+									//get event name, start, and end date		
+									if (application.event_id != '') {
 
-									User.findById(event.organization_id, function(err, organization) {
-											if(err) throw err;
 
-											console.log("organization is " + JSON.stringify(organization.name));
-											
-											x = {};
-											x['application'] = application;
-											x['event'] =  event;
-											x['organization_name'] = organization.name;
-											console.log("x is " + JSON.stringify(x));
-											
-											user_apps.push(x);
-											console.log("user apps is " + JSON.stringify(user_apps));
-									});
+												Event.findById(application.event_id, function(err, event){
+												
+												if (err) {
+									        reject(err);
+									      } 
 
-								});
-					}			
+									      	if (event == null)
+									      	{
+									      		console.log("event is null");
+									      		resolve("done");
+									      	}else {
+
+													console.log("bad event is " + JSON.stringify(event));
+
+													User.findById(event.organization_id, function(err, organization) {
+																						
+															if (err) {
+												        reject(err);
+												      } 
+
+															console.log("organization is " + JSON.stringify(organization.name));
+															
+															x = {};
+															x['application'] = application;
+															x['event'] =  event;
+															x['organization_name'] = organization.name;
+															console.log("x is " + JSON.stringify(x));
+															
+															user_apps.push(x);
+															console.log("user apps is " + JSON.stringify(user_apps));
+															resolve(x);
+													});
+												}
+
+												});
+									}		
+									else
+									{
+											resolve();
+									}	
+
+				});
 
 				});
 				
@@ -67,7 +106,7 @@ router.get('/', ensureAuthenticated, function(req, res){
 		});
 	
 	}
-	else{
+	else if (user_type == 'organization'){
 
 	var query = {organization_id: req.user.id}
 	Event.find(query, function(err, events){
@@ -98,7 +137,12 @@ router.get('/', ensureAuthenticated, function(req, res){
    });
 
 	}
+	else{
 
+						var context = {user : req.user};
+						res.render('home', context);
+
+	}
 	//var context = {user : req.user}
 	//res.render('index', context);
 });
@@ -340,6 +384,8 @@ router.post('/events', function(req, res){
 	var lng = req.body.lng;
 	var organization_id = req.body.organization_id;
 	var event_type = req.body.event_type;
+	var max_volunteers = req.body.max_volunteers;
+	var subscriber_model = req.body.subscriber_model
 
 	var skills = [];
 	var interests = [];
@@ -377,6 +423,13 @@ router.post('/events', function(req, res){
 			}
 		}
 
+		console.log("subscriber_model is  " + subscriber_model);
+
+
+		if (subscriber_model != "on"){
+			subscriber_model = false;
+		}
+
 		var newEvent = new Event({
 			event_name: name,
 			event_start_date: start_date,
@@ -385,7 +438,9 @@ router.post('/events', function(req, res){
 			lng: lng,
 			organization_id: organization_id,
 			skills: skills,
-			interests: interests
+			interests: interests,
+			subscriber_model: subscriber_model,
+			max_volunteers: max_volunteers
 		});
 
 
@@ -393,34 +448,82 @@ router.post('/events', function(req, res){
 			if(err) throw err;
 			console.log(user);
 
-						   	client.index({
-						  		index: 'test_events4',
-						 		  type: 'event',
-						  		body: {
-						   			name: name,
-						   			start_date: newEvent.event_start_date,
-						   			end_date: newEvent.event_end_date,
-						   			recurring: 'recurring',
-						   			location: { lat:lat, lon: lng},
-						   			organization_name: req.user.name,
-						   			event_type: event_type,
-						   			event_id: newEvent.id,
-						   			admin_ids: [14,4,54]
-						   			 		 }
-								}, function (error, response) {
-									if (error){
-										console.log("ERROR when trying to index new document");
-									}
-									else{
-										console.log("response from indexing new document is " + JSON.stringify(response));
-									}
 
 
-								});
+		if (subscriber_model != true){
 
-								req.flash('success_msg', 'Event was created');
-								var context = {user : req.user}
-								res.render('events', context);
+					client.index({
+						index: 'test_events4',
+							type: 'event',
+						body: {
+							name: name,
+							start_date: newEvent.event_start_date,
+							end_date: newEvent.event_end_date,
+							recurring: 'recurring',
+							location: { lat:lat, lon: lng},
+							organization_name: req.user.name,
+							event_type: event_type,
+							event_id: newEvent.id,
+							admin_ids: [14,4,54]
+										}
+						}, function (error, response) {
+							if (error){
+								console.log("ERROR when trying to index new document");
+							}
+							else{
+								console.log("response from indexing new document is " + JSON.stringify(response));
+							}
+
+
+					});
+
+			}
+
+
+			//expects id from user table
+			var candidate = findSuitableCandidate(newEvent);
+			User.findById(candidate,function(err, user){
+				if(err) throw err;
+				var name = user.name;
+				var email = user.email;
+			
+				var htmlEmail = 'Email will be sent to ' + email +'\n<p>Hi '+ name +'</p><h3>Please consider this new volunteer opportunity recommended for you!</h3><br/><table><tr><td style="background-color: #4ecdc4;border-color: #4c5764;border: 2px solid #45b7af;padding: 10px;text-align: center;"><a style="display: block;color: #ffffff;font-size: 12px;text-decoration: none;text-transform: uppercase;" href="localhost:3050/subscribe/'+newEvent.id+'/yes">Yes</a></td><td style="background-color: #cd4e9c;border-color: #4c5764;border: 2px solid #cd4e9c;padding: 10px;text-align: center;"><a style="display: block;color: #ffffff;font-size: 12px;text-decoration: none;text-transform: uppercase;" href="localhost:3050/subscribe/'+newEvent.id+'/no">No</a></td></tr></table>';
+				//send email to subscriber
+				nodemailerMailgun.sendMail({
+					from: 'team@volunteer.ga',
+					to: email, // An array if you have multiple recipients.
+					subject: 'New Volunteer Opportunity',
+					//'h:Reply-To': 'eventCreator@company.com',
+					//You can use "html:" to send HTML email content. It's magic!
+					html: htmlEmail,
+					//You can use "text:" to send plain-text content. It's oldschool!
+				//text: 'Mailgun rocks, pow pow!'
+				}, function (err, info) {
+					if (err) {
+						console.log('Error: ' + err);
+					}
+					else {
+						console.log('Response: ' + info);
+					}
+				});
+				//add subscription event to database
+				var newSubscriber = new Subscriber({
+					event_id: newEvent.id,
+					email_data: [{
+						user_id: candidate,
+						responded: false,
+						response: null
+					}]
+				});
+				Subscriber.createSubscriber(newSubscriber, function(err,user) {
+
+				});
+
+			});
+			
+			req.flash('success_msg', 'Event was created');
+			var context = {user : req.user}
+			res.render('events', context);
 
 		});
 
@@ -490,14 +593,274 @@ router.post('/data', function(req, res){
 });
 
 
+function test_sub(){
+
+    console.info('cron job starting');
+
+    //get all events that are subscriber and status active
+    var query = {subscriber_model: true, status: 'active', _id: ObjectId('5ab174b4e480420202507aed')};
+		Event.find(query,function(err, events){
+
+			console.log("events is " + JSON.stringify(events));
+				if(err) throw err;
+
+				//get global offer number and find the ones that didn't reply to set to 'offered'
+				GlobalSubscriber.findOne( function(err, global_sub_obj){
+							if(err) throw err;
+
+					    var global_sub_num = global_sub_obj['sub_num'];
+					    console.log("global_sub_obj is  "  + global_sub_num);
+
+
+							for (var p = 0; p < events.length; p++) {
+
+								var event = events[p];
+
+								if (event == null){
+									continue;
+								}
+
+								console.log("finding subs for " + event['event_name']);
+
+
+								//mark these subs as rejected, the user didn't respond to them
+								var query = {event_id: event['_id'], status: 'tbd', offer_number: global_sub_num};
+								Subscriber.find(query, function(err, sent_subs){
+									if(err) throw err;
+
+									console.log("sent subs is " + JSON.stringify(sent_subs));
+
+									for (var s = 0; s < sent_subs.length; s++ ){
+
+										var sent_sub = sent_subs[s];
+
+										console.log("rejecting sub is " + JSON.stringify(sent_sub));
+										//mark status are rejected
+										//sent_sub.status = 'rejected';
+
+										Subscriber.update({_id: sent_sub._id}, { status: 'rejected' }, function(err, updatedSub) {
+											if(err) throw err;
+										});
+									
+									}
+									
+											//now if the number of accepted subs is less than max number of volunteers allowed then send this to best volunteer
+											var query = {event_id: event['_id'], status: 'accepted'};
+											Subscriber.find(query, function(err, accepted_subs){
+												if(err) throw err;
+
+												console.log("accepted_subs length is " + accepted_subs.length);
+
+												if (accepted_subs.length < event['max_volunteers']){
+													console.log("sending a subscription!");
+													//find best person to send a subscription to
+
+													var candidates_list = find_and_send_to_best_canditate(event['_id'],global_sub_num);
+
+															
+												}
+												
+
+											});
+
+
+								});
+							
+							}//end of for each event
+							//update global number here
+							global_sub_obj['sub_num'] = global_sub_num + 1;
+							global_sub_obj.save();
+
+				});
+		});
+
+}
+
+//test_sub();
+
+
+mongoose.model('ml_stage1', 
+               new Schema({ _id: Number, names: [{
+    type: String
+}], event_id: String }));
+
+var ml_collection = mongoose.model('ml_stage1');
+
+
+function find_and_send_to_best_canditate(event_id, offer_number){
+
+console.log("event_id is " + event_id);
+//get list of best canditates from database, loop through and use the one that is vacant
+
+
+ml_collection.find({event_id: event_id}, async function (err, ml_object) {
+	if(err) throw err;
+
+	console.log("ml_object from ml stage 1 is " + JSON.stringify(ml_object[0]['names']));
+	names = ml_object[0]['names'];
+	var available = null;
+
+	//check if person is available
+	for(var p = 0; p < names.length; p++)
+	{
+		var username = names[p];
+		var result = await name_available(username, offer_number);
+
+		console.log("result is " + JSON.stringify(result));
+
+		 if (result) {
+		   console.log("sending " + username + " an offer");
+
+		 		//sending offer
+		 		send_offer(event_id, result[0]['_id'],offer_number);
+
+
+		 	return true;
+		 }
+	}
+
+ });
+
+}
+
+function send_offer(event_id, volunteer_id, global_offer_number) {
+
+	return new Promise(function(resolve,reject) {
+
+		//create new subscriber offer
+
+		//add subscription event to database
+		var newSubscriber = new Subscriber({
+			event_id: event_id,
+			volunteer_id: volunteer_id,
+			offer_number: global_offer_number + 1
+		});
+
+
+		User.findById(volunteer_id, function(err,volunteer) {
+
+				var name = volunteer.name;
+				var email = volunteer.email;
+
+				Event.findById(event_id, function(err, event) {
+
+							//var htmlEmail = 'Email will be sent to ' + email +'\n<p>Hi '+ name +'</p><h3>Please consider this new volunteer opportunity recommended for you!</h3><br/><table><tr><td style="background-color: #4ecdc4;border-color: #4c5764;border: 2px solid #45b7af;padding: 10px;text-align: center;"><a style="display: block;color: #ffffff;font-size: 12px;text-decoration: none;text-transform: uppercase;" href="localhost:3050/subscribe/'+newEvent.id+'/yes">Yes</a></td><td style="background-color: #cd4e9c;border-color: #4c5764;border: 2px solid #cd4e9c;padding: 10px;text-align: center;"><a style="display: block;color: #ffffff;font-size: 12px;text-decoration: none;text-transform: uppercase;" href="localhost:3050/subscribe/'+newEvent.id+'/no">No</a></td></tr></table>';
+							//send email to subscriber
+							var htmlEmail = '<!DOCTYPE html> <html> <head> <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" /> <link href="https://fonts.googleapis.com/css?family=Rajdhani" rel="stylesheet"> <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script> <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> <style> body { font-family: "Rajdhani", sans-serif; } hr { margin-top: 0px; margin-bottom: 0px; } #button1 , #button2 { display:inline-block; /**other codes**/ } </style> </head> <body> <div class="container"> <div class="row"> <h3>Hi,' +  name +'</h3> <h3>Please consider this new volunteer opportunity recommended for you.</h3> <br> <p>Organization Name: Sick Kids Hospital </p> <p>Event Name: ' +  event.event_name + ' </p> <p>Event Location (Lat/Lon): ' + event.lat + '/' + event.lon  +' </p> <p>Event Date: ' + event.event_start_date +' to ' + event.event_end_date + '</p> <br> <form action="http://localhost:3050/subscribe/'  + newSubscriber._id + '/yes" id="button1" method="get"> <input type="submit" class="btn btn-success" id="button1" value="Accept"/> </form> <form method="get" action="http://localhost:3050/subscribe/' + newSubscriber._id +'/no" id="button2"> <input type="submit" class="btn btn-danger" id="button1" value="Decline"/> </form> </div> <br><br> <br> <footer class="footer"> <p>© 2017 Volunteer Discovery Platform.</p> </footer> </div> </body> </html>';
+
+							nodemailerMailgun.sendMail({
+								from: 'team@volunteer.ga',
+								to: 'smeetgajjarwork@gmail.com', // An array if you have multiple recipients.
+								subject: 'Volunteer Discovery Platform: New Oppurtunity',
+								//'h:Reply-To': 'eventCreator@company.com',
+								//You can use "html:" to send HTML email content. It's magic!
+								html: htmlEmail,
+								//You can use "text:" to send plain-text content. It's oldschool!
+							//text: 'Mailgun rocks, pow pow!'
+							}, function (err, info) {
+								if (err) {
+									console.log('Error: ' + err);
+								}
+								else {
+									console.log('Response: ' + info);
+								}
+							});
+
+							Subscriber.createSubscriber(newSubscriber, function(err,user) {
+									if (err) reject(err);
+									resolve(user);
+
+							});
+
+
+			  });
+			
+
+		});
+
+	});
+}
+
+function name_available(username, global_offer_number){
+
+return new Promise(function(resolve, reject) {
+
+				//make query to find id 
+				User.find({username: username}, async function(err, volunteer) {
+					if (err) reject(err);
+
+				//console.log("volunteer is " + JSON.stringify(volunteer) + " global offer number is " + global_offer_number);
+
+						//find if we sent this person an offer
+						var available = await sub_offer_not_sent_check(volunteer[0]._id, global_offer_number);
+
+						console.log("available is " + available);
+
+						if (available){
+							resolve(volunteer);
+						}else{
+							resolve(false);
+						}
+
+				});
+
+});
+}
+
+function sub_offer_not_sent_check(volunteer_id, global_offer_number) {
+		return new Promise(function(resolve, reject) {
+
+		console.log("volunteer_id is " + volunteer_id);
+			 Subscriber.findOne( {volunteer_id: volunteer_id, offer_number: global_offer_number}, function(err, sub_offer){
+					if (err) throw err;
+					console.log("sub offer is " + JSON.stringify(sub_offer));
+					if (sub_offer == null) {
+						resolve(true);
+					}
+					else {
+						resolve(false);
+					}
+
+				});
+	
+			});
+}
+
+
+//runs every 10 minutes
+var cronJob = cron.job("*/30 * * * * *", test_sub);
+
+//cronJob.start();
+
 function ensureAuthenticated(req, res, next){
 	if(req.isAuthenticated()){
 		return next();
 	} else {
 		//req.flash('error_msg','You are not logged in');
-		res.redirect('/users/login');
+		//res.render('/users/login');
+
+						var context = {user : req.user};
+						res.render('home', context);
 	}
 }
+
+
+var mailgunAuth = {
+    auth: {
+      api_key: 'key-acf0e476f168e2d479cd087c28357604',
+      domain: 'sandbox091e9e5e429d4b24aae968453fe23f11.mailgun.org'
+    }//,
+    //proxy: 'http://user:pass@localhost:8080' // optional proxy, default is false
+  };
+  var nodemailerMailgun = nodemailer.createTransport(mg(mailgunAuth));
+
+//given event, select a suitable candidate to send email to
+function findSuitableCandidate(eventData) {
+	//for now just return a uid 
+	//TODO - actually recommend a proper candidate based on event
+	return '5a5b8bb79c77e933ac651ff2';
+}
+
 
 
 

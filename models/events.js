@@ -28,6 +28,20 @@ var EventSchema = mongoose.Schema({
 		interests: {
 		type: Array,
 	},
+	subscriber_model: {
+		type: Boolean
+
+	},
+	status:
+	{
+		type: String,
+		default: 'active'
+	},
+	max_volunteers:
+	{
+		type: Number,
+		default: 10
+	}
 });
 
 

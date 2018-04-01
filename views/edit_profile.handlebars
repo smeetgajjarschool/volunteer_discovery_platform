@@ -1,0 +1,830 @@
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+  <style>
+#time-range p {
+    font-family:"Arial", sans-serif;
+    font-size:14px;
+    color:#333;
+}
+.ui-slider-horizontal {
+    height: 8px;
+    background: #D7D7D7;
+    border: 1px solid #BABABA;
+    box-shadow: 0 1px 0 #FFF, 0 1px 0 #CFCFCF inset;
+    clear: both;
+    margin: 8px 0;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    -ms-border-radius: 6px;
+    -o-border-radius: 6px;
+    border-radius: 6px;
+}
+.ui-slider {
+    position: relative;
+    text-align: left;
+}
+.ui-slider-horizontal .ui-slider-range {
+    top: -1px;
+    height: 100%;
+}
+.ui-slider .ui-slider-range {
+    position: absolute;
+    z-index: 1;
+    height: 8px;
+    font-size: .7em;
+    display: block;
+    border: 1px solid #5BA8E1;
+    box-shadow: 0 1px 0 #AAD6F6 inset;
+    -moz-border-radius: 6px;
+    -webkit-border-radius: 6px;
+    -khtml-border-radius: 6px;
+    border-radius: 6px;
+    background: #81B8F3;
+    background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgi…pZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JhZCkiIC8+PC9zdmc+IA==');
+    background-size: 100%;
+    background-image: -webkit-gradient(linear, 50% 0, 50% 100%, color-stop(0%, #A0D4F5), color-stop(100%, #81B8F3));
+    background-image: -webkit-linear-gradient(top, #A0D4F5, #81B8F3);
+    background-image: -moz-linear-gradient(top, #A0D4F5, #81B8F3);
+    background-image: -o-linear-gradient(top, #A0D4F5, #81B8F3);
+    background-image: linear-gradient(top, #A0D4F5, #81B8F3);
+}
+.ui-slider .ui-slider-handle {
+    border-radius: 50%;
+    background: #F9FBFA;
+    background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgi…pZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JhZCkiIC8+PC9zdmc+IA==');
+    background-size: 100%;
+    background-image: -webkit-gradient(linear, 50% 0, 50% 100%, color-stop(0%, #C7CED6), color-stop(100%, #F9FBFA));
+    background-image: -webkit-linear-gradient(top, #C7CED6, #F9FBFA);
+    background-image: -moz-linear-gradient(top, #C7CED6, #F9FBFA);
+    background-image: -o-linear-gradient(top, #C7CED6, #F9FBFA);
+    background-image: linear-gradient(top, #C7CED6, #F9FBFA);
+    width: 22px;
+    height: 22px;
+    -webkit-box-shadow: 0 2px 3px -1px rgba(0, 0, 0, 0.6), 0 -1px 0 1px rgba(0, 0, 0, 0.15) inset, 0 1px 0 1px rgba(255, 255, 255, 0.9) inset;
+    -moz-box-shadow: 0 2px 3px -1px rgba(0, 0, 0, 0.6), 0 -1px 0 1px rgba(0, 0, 0, 0.15) inset, 0 1px 0 1px rgba(255, 255, 255, 0.9) inset;
+    box-shadow: 0 2px 3px -1px rgba(0, 0, 0, 0.6), 0 -1px 0 1px rgba(0, 0, 0, 0.15) inset, 0 1px 0 1px rgba(255, 255, 255, 0.9) inset;
+    -webkit-transition: box-shadow .3s;
+    -moz-transition: box-shadow .3s;
+    -o-transition: box-shadow .3s;
+    transition: box-shadow .3s;
+}
+.ui-slider .ui-slider-handle {
+    position: absolute;
+    z-index: 2;
+    width: 22px;
+    height: 22px;
+    cursor: default;
+    border: none;
+    cursor: pointer;
+}
+.ui-slider .ui-slider-handle:after {
+    content:"";
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    top: 50%;
+    margin-top: -4px;
+    left: 50%;
+    margin-left: -4px;
+    background: #30A2D2;
+    -webkit-box-shadow: 0 1px 1px 1px rgba(22, 73, 163, 0.7) inset, 0 1px 0 0 #FFF;
+    -moz-box-shadow: 0 1px 1px 1px rgba(22, 73, 163, 0.7) inset, 0 1px 0 0 white;
+    box-shadow: 0 1px 1px 1px rgba(22, 73, 163, 0.7) inset, 0 1px 0 0 #FFF;
+}
+.ui-slider-horizontal .ui-slider-handle {
+    top: -.5em;
+    margin-left: -.6em;
+}
+.ui-slider a:focus {
+    outline:none;
+}
+.slider-range {
+  width: 90%;
+  margin: 0 auto;
+}
+#time-range {
+  width: 400px;
+}
+#available-monday-input-slider { display: none; }
+#available-tuesday-input-slider { display: none; }
+#available-wednesday-input-slider { display: none; }
+#available-thursday-input-slider { display: none; }
+#available-friday-input-slider { display: none; }
+#available-saturday-input-slider { display: none; }
+#available-sunday-input-slider { display: none; }
+</style>
+
+
+<head>
+<style>
+html,
+body,
+#map-canvas {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+</style>
+</head>
+
+<h2 class="page-header">Edit Your Profile</h2>
+{{#if errors}}
+      {{#each errors}}
+        <div class="alert alert-danger">{{msg}}</div>
+      {{/each}}
+{{/if}}
+
+{{#if volunteer}}
+  <div id="volunteer_form">
+  <form method="post" action="/profile/update">
+   	<div class="form-group">
+    	<label>Name</label>
+    	<input type="text" class="form-control" placeholder="Name" name="name" value={{user.name}}>
+  	</div>
+
+  	<div class="form-group">
+    	<label>Date of Birth</label>
+    	<input type="date" class="form-control" placeholder="Date of Birth" name="dob" value={{dob}}>
+  	</div>
+
+  	<div class="form-group">
+   		<div class="interests_wrapper">
+			<label>Interests</label>
+	    	<input type="text" class="form-control" placeholder="Interest" name="interests[]" value={{profile.interests}}><br>
+  		</div>
+	    <button class="add_interest_button btn">Add Another Interest</button>
+  	</div>
+
+    <div class="form-group">
+        <div class="skills_wrapper">
+			<label>Skills or Experiences</label>
+	    	<input type="text" class="form-control" placeholder="Skill or Experience" name="skills[]" value={{profile.skills}}><br>
+  		</div>
+	    <button class="add_skill_button btn">Add Another Skill or Experience</button>
+  	</div>
+
+
+  	<div class="form-group">
+        <div id="time-range">
+          <br><label>Availability:</label><br>
+
+          <input type="checkbox" id="checkbox-monday" name="checkbox-monday" value="available-monday">
+          <span>Monday</span>
+          <div id="available-monday-input-slider">
+          <input type="text" class="slider-time-monday" name="availability_monday_from" value = '{{profile.availability.monday.from}}' readonly>
+          <input type="text" class="slider-time2-monday" name="availability_monday_to" value = '{{profile.availability.monday.to}}' readonly> 
+          <br><br>
+          <div class="sliders_step1">
+              <div class="slider-range" id="slider-range-monday"></div>
+          </div></div>
+          <br>
+          
+          <input type="checkbox" id="checkbox-tuesday" name="checkbox-tuesday" value="available-tuesday">
+          <span>Tuesday</span>
+          <div id="available-tuesday-input-slider">
+          <input type="text" class="slider-time-tuesday" name="availability_tuesday_from" value = '{{profile.availability.tuesday.from}}' readonly>
+          <input type="text" class="slider-time2-tuesday" name="availability_tuesday_to" value = '{{profile.availability.tuesday.to}}' readonly> 
+          <br><br>
+          <div class="sliders_step1">
+              <div class="slider-range" id="slider-range-tuesday"></div>
+          </div></div>
+          <br>
+
+          <input type="checkbox" id="checkbox-wednesday" name="checkbox-wednesday" value="available-wednesday">
+          <span>Wednesday</span>
+          <div id="available-wednesday-input-slider">
+          <input type="text" class="slider-time-wednesday" name="availability_wednesday_from" value = '{{profile.availability.wednesday.from}}' readonly>
+          <input type="text" class="slider-time2-wednesday" name="availability_wednesday_to" value = '{{profile.availability.wednesday.to}}' readonly> 
+          <br><br>
+          <div class="sliders_step1">
+              <div class="slider-range" id="slider-range-wednesday"></div>
+          </div></div>
+          <br>
+
+          <input type="checkbox" id="checkbox-thursday" name="checkbox-thursday" value="available-thursday">
+          <span>Thursday</span>
+          <div id="available-thursday-input-slider">
+          <input type="text" class="slider-time-thursday" name="availability_thursday_from" value = '{{profile.availability.thursday.from}}' readonly>
+          <input type="text" class="slider-time2-thursday" name="availability_thursday_to" value = '{{profile.availability.thursday.to}}' readonly> 
+          <br><br>
+          <div class="sliders_step1">
+              <div class="slider-range" id="slider-range-thursday"></div>
+          </div></div>
+          <br>
+
+          <input type="checkbox" id="checkbox-friday" name="checkbox-friday" value="available-friday">
+          <span>Friday</span>
+          <div id="available-friday-input-slider">
+          <input type="text" class="slider-time-friday" name="availability_friday_from" value = '{{profile.availability.friday.from}}' readonly>
+          <input type="text" class="slider-time2-friday" name="availability_friday_to" value = '{{profile.availability.friday.to}}' readonly> 
+          <br><br>
+          <div class="sliders_step1">
+              <div class="slider-range" id="slider-range-friday"></div>
+          </div></div>
+          <br>
+
+          <input type="checkbox" id="checkbox-saturday" name="checkbox-saturday" value="available-saturday">
+          <span>Saturday</span>
+          <div id="available-saturday-input-slider">
+          <input type="text" class="slider-time-saturday" name="availability_saturday_from" value = '{{profile.availability.saturday.from}}' readonly>
+          <input type="text" class="slider-time2-saturday" name="availability_saturday_to" value = '{{profile.availability.saturday.to}}' readonly> 
+          <br><br>
+          <div class="sliders_step1">
+              <div class="slider-range" id="slider-range-saturday"></div>
+          </div></div>
+          <br>
+
+          <input type="checkbox" id="checkbox-sunday" name="checkbox-sunday" value="available-sunday">
+          <span>Sunday</span>
+          <div id="available-sunday-input-slider">
+          <input type="text" class="slider-time-sunday" name="availability_sunday_from" value = '{{profile.availability.sunday.from}}' readonly>
+          <input type="text" class="slider-time2-sunday" name="availability_sunday_to" value = '{{profile.availability.sunday.to}}' readonly> 
+          <br><br>
+          <div class="sliders_step1">
+              <div class="slider-range" id="slider-range-sunday"></div>
+          </div></div>
+          <br>
+
+        </div>
+      </div>
+
+    <button type="submit" class="btn btn-default">Save</button>
+  </form>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+
+  <script>
+  	$(document).ready(function() {
+  	    var max_fields      = 5; //maximum input boxes allowed
+  	    var wrapper         = $(".interests_wrapper"); //Fields wrapper
+  	    var add_button      = $(".add_interest_button"); //Add button ID
+  	    
+  	    var x = 1; //initial text box count
+  	    $(add_button).click(function(e){ //on add input button click
+  	        e.preventDefault();
+  	        if(x < max_fields){ //max input box allowed
+  	            x++; //text box increment
+  	            $(wrapper).append('<div><input type="text" class="form-control" placeholder="Interest" name="interests[]"/><a href="#" class="remove_interest btn-link">Remove</a></div>'); //add input box
+  	        }
+  	    });
+  	    
+  	    $(wrapper).on("click",".remove_interest", function(e){ //user click on remove text
+  	        e.preventDefault(); $(this).parent('div').remove(); x--;
+  	    })
+  	});
+
+  	$(document).ready(function() {
+  	    var max_fields      = 5; //maximum input boxes allowed
+  	    var wrapper         = $(".skills_wrapper"); //Fields wrapper
+  	    var add_button      = $(".add_skill_button"); //Add button ID
+  	    
+  	    var x = 1; //initial text box count
+  	    $(add_button).click(function(e){ //on add input button click
+  	        e.preventDefault();
+  	        if(x < max_fields){ //max input box allowed
+  	            x++; //text box increment
+  	            $(wrapper).append('<div><input type="text" class="form-control" placeholder="Skill or Experience" name="skills[]"/><a href="#" class="remove_skill btn-link">Remove</a></div>'); //add input box
+  	        }
+  	    });
+  	    
+  	    $(wrapper).on("click",".remove_skill", function(e){ //user click on remove text
+  	        e.preventDefault(); $(this).parent('div').remove(); x--;
+  	    })
+  	});
+  </script>
+
+  <script>
+  	$(document).ready(function(){
+
+   $("#slider-range-monday").slider({
+      range: true,
+      min: 0,
+      max: 1440,
+      step: 15,
+      values: [540, 1020],
+      slide: function (e, ui) {
+          var hours1 = Math.floor(ui.values[0] / 60);
+          var minutes1 = ui.values[0] - (hours1 * 60);
+
+          if (hours1.length == 1) hours1 = '0' + hours1;
+          if (minutes1.length == 1) minutes1 = '0' + minutes1;
+          if (minutes1 == 0) minutes1 = '00';
+          if (hours1 >= 12) {
+              if (hours1 == 12) {
+                  hours1 = hours1;
+                  minutes1 = minutes1 + " PM";
+              } else {
+                  hours1 = hours1 - 12;
+                  minutes1 = minutes1 + " PM";
+              }
+          } else {
+              hours1 = hours1;
+              minutes1 = minutes1 + " AM";
+          }
+          if (hours1 == 0) {
+              hours1 = 12;
+              minutes1 = minutes1;
+          }
+
+          //$('.slider-time-monday').html(hours1 + ':' + minutes1);
+          $('.slider-time-monday').val(hours1 + ':' + minutes1);
+
+          var hours2 = Math.floor(ui.values[1] / 60);
+          var minutes2 = ui.values[1] - (hours2 * 60);
+
+          if (hours2.length == 1) hours2 = '0' + hours2;
+          if (minutes2.length == 1) minutes2 = '0' + minutes2;
+          if (minutes2 == 0) minutes2 = '00';
+          if (hours2 >= 12) {
+              if (hours2 == 12) {
+                  hours2 = hours2;
+                  minutes2 = minutes2 + " PM";
+              } else if (hours2 == 24) {
+                  hours2 = 11;
+                  minutes2 = "59 PM";
+              } else {
+                  hours2 = hours2 - 12;
+                  minutes2 = minutes2 + " PM";
+              }
+          } else {
+              hours2 = hours2;
+              minutes2 = minutes2 + " AM";
+          }
+
+          $('.slider-time2-monday').val(hours2 + ':' + minutes2);
+      }
+  });
+
+  $('#checkbox-monday').change(function(){
+      if (this.checked) {
+          $('#available-monday-input-slider').fadeIn('fast');            
+          $('.slider-time-monday').val("9:00 AM");
+          $('.slider-time2-monday').val("5:00 PM");
+          $('#slider-range-monday').slider('values', [540, 1020]);
+        }
+      else {
+          $('#available-monday-input-slider').fadeOut('fast');
+          $('.slider-time-monday').val("");
+          $('.slider-time2-monday').val("");
+      }                   
+  });
+
+  $("#slider-range-tuesday").slider({
+      range: true,
+      min: 0,
+      max: 1440,
+      step: 15,
+      values: [540, 1020],
+      slide: function (e, ui) {
+          var hours1 = Math.floor(ui.values[0] / 60);
+          var minutes1 = ui.values[0] - (hours1 * 60);
+
+          if (hours1.length == 1) hours1 = '0' + hours1;
+          if (minutes1.length == 1) minutes1 = '0' + minutes1;
+          if (minutes1 == 0) minutes1 = '00';
+          if (hours1 >= 12) {
+              if (hours1 == 12) {
+                  hours1 = hours1;
+                  minutes1 = minutes1 + " PM";
+              } else {
+                  hours1 = hours1 - 12;
+                  minutes1 = minutes1 + " PM";
+              }
+          } else {
+              hours1 = hours1;
+              minutes1 = minutes1 + " AM";
+          }
+          if (hours1 == 0) {
+              hours1 = 12;
+              minutes1 = minutes1;
+          }
+
+          $('.slider-time-tuesday').val(hours1 + ':' + minutes1);
+
+          var hours2 = Math.floor(ui.values[1] / 60);
+          var minutes2 = ui.values[1] - (hours2 * 60);
+
+          if (hours2.length == 1) hours2 = '0' + hours2;
+          if (minutes2.length == 1) minutes2 = '0' + minutes2;
+          if (minutes2 == 0) minutes2 = '00';
+          if (hours2 >= 12) {
+              if (hours2 == 12) {
+                  hours2 = hours2;
+                  minutes2 = minutes2 + " PM";
+              } else if (hours2 == 24) {
+                  hours2 = 11;
+                  minutes2 = "59 PM";
+              } else {
+                  hours2 = hours2 - 12;
+                  minutes2 = minutes2 + " PM";
+              }
+          } else {
+              hours2 = hours2;
+              minutes2 = minutes2 + " AM";
+          }
+
+          $('.slider-time2-tuesday').val(hours2 + ':' + minutes2);    }
+  });
+
+  $('#checkbox-tuesday').change(function(){
+      if (this.checked) {
+          $('#available-tuesday-input-slider').fadeIn('fast');            
+          $('.slider-time-tuesday').val("9:00 AM");
+          $('.slider-time2-tuesday').val("5:00 PM");
+          $('#slider-range-tuesday').slider('values', [540, 1020]);
+        }
+      else {
+          $('#available-tuesday-input-slider').fadeOut('fast');
+          $('.slider-time-tuesday').val("");
+          $('.slider-time2-tuesday').val("");
+      }                   
+  });
+
+  $("#slider-range-wednesday").slider({
+      range: true,
+      min: 0,
+      max: 1440,
+      step: 15,
+      values: [540, 1020],
+      slide: function (e, ui) {
+          var hours1 = Math.floor(ui.values[0] / 60);
+          var minutes1 = ui.values[0] - (hours1 * 60);
+
+          if (hours1.length == 1) hours1 = '0' + hours1;
+          if (minutes1.length == 1) minutes1 = '0' + minutes1;
+          if (minutes1 == 0) minutes1 = '00';
+          if (hours1 >= 12) {
+              if (hours1 == 12) {
+                  hours1 = hours1;
+                  minutes1 = minutes1 + " PM";
+              } else {
+                  hours1 = hours1 - 12;
+                  minutes1 = minutes1 + " PM";
+              }
+          } else {
+              hours1 = hours1;
+              minutes1 = minutes1 + " AM";
+          }
+          if (hours1 == 0) {
+              hours1 = 12;
+              minutes1 = minutes1;
+          }
+
+          $('.slider-time-wednesday').val(hours1 + ':' + minutes1);
+
+          var hours2 = Math.floor(ui.values[1] / 60);
+          var minutes2 = ui.values[1] - (hours2 * 60);
+
+          if (hours2.length == 1) hours2 = '0' + hours2;
+          if (minutes2.length == 1) minutes2 = '0' + minutes2;
+          if (minutes2 == 0) minutes2 = '00';
+          if (hours2 >= 12) {
+              if (hours2 == 12) {
+                  hours2 = hours2;
+                  minutes2 = minutes2 + " PM";
+              } else if (hours2 == 24) {
+                  hours2 = 11;
+                  minutes2 = "59 PM";
+              } else {
+                  hours2 = hours2 - 12;
+                  minutes2 = minutes2 + " PM";
+              }
+          } else {
+              hours2 = hours2;
+              minutes2 = minutes2 + " AM";
+          }
+
+          $('.slider-time2-wednesday').val(hours2 + ':' + minutes2);
+      }
+  });
+
+  $('#checkbox-wednesday').change(function(){
+      if (this.checked) {
+          $('#available-wednesday-input-slider').fadeIn('fast');            
+          $('.slider-time-wednesday').val("9:00 AM");
+          $('.slider-time2-wednesday').val("5:00 PM");
+          $('#slider-range-wednesday').slider('values', [540, 1020]);
+        }
+      else {
+          $('#available-wednesday-input-slider').fadeOut('fast');
+          $('.slider-time-wednesday').val("");
+          $('.slider-time2-wednesday').val("");
+      }                   
+  });
+
+  $("#slider-range-thursday").slider({
+      range: true,
+      min: 0,
+      max: 1440,
+      step: 15,
+      values: [540, 1020],
+      slide: function (e, ui) {
+          var hours1 = Math.floor(ui.values[0] / 60);
+          var minutes1 = ui.values[0] - (hours1 * 60);
+
+          if (hours1.length == 1) hours1 = '0' + hours1;
+          if (minutes1.length == 1) minutes1 = '0' + minutes1;
+          if (minutes1 == 0) minutes1 = '00';
+          if (hours1 >= 12) {
+              if (hours1 == 12) {
+                  hours1 = hours1;
+                  minutes1 = minutes1 + " PM";
+              } else {
+                  hours1 = hours1 - 12;
+                  minutes1 = minutes1 + " PM";
+              }
+          } else {
+              hours1 = hours1;
+              minutes1 = minutes1 + " AM";
+          }
+          if (hours1 == 0) {
+              hours1 = 12;
+              minutes1 = minutes1;
+          }
+
+          $('.slider-time-thursday').val(hours1 + ':' + minutes1);
+
+          var hours2 = Math.floor(ui.values[1] / 60);
+          var minutes2 = ui.values[1] - (hours2 * 60);
+
+          if (hours2.length == 1) hours2 = '0' + hours2;
+          if (minutes2.length == 1) minutes2 = '0' + minutes2;
+          if (minutes2 == 0) minutes2 = '00';
+          if (hours2 >= 12) {
+              if (hours2 == 12) {
+                  hours2 = hours2;
+                  minutes2 = minutes2 + " PM";
+              } else if (hours2 == 24) {
+                  hours2 = 11;
+                  minutes2 = "59 PM";
+              } else {
+                  hours2 = hours2 - 12;
+                  minutes2 = minutes2 + " PM";
+              }
+          } else {
+              hours2 = hours2;
+              minutes2 = minutes2 + " AM";
+          }
+
+          $('.slider-time2-thursday').val(hours2 + ':' + minutes2);
+      }
+  });
+
+  $('#checkbox-thursday').change(function(){
+      if (this.checked) {
+          $('#available-thursday-input-slider').fadeIn('fast');            
+          $('.slider-time-thursday').val("9:00 AM");
+          $('.slider-time2-thursday').val("5:00 PM");
+          $('#slider-range-thursday').slider('values', [540, 1020]);
+        }
+      else {
+          $('#available-thursday-input-slider').fadeOut('fast');
+          $('.slider-time-thursday').val("");
+          $('.slider-time2-thursday').val("");
+      }                   
+  });
+
+  $("#slider-range-friday").slider({
+      range: true,
+      min: 0,
+      max: 1440,
+      step: 15,
+      values: [540, 1020],
+      slide: function (e, ui) {
+          var hours1 = Math.floor(ui.values[0] / 60);
+          var minutes1 = ui.values[0] - (hours1 * 60);
+
+          if (hours1.length == 1) hours1 = '0' + hours1;
+          if (minutes1.length == 1) minutes1 = '0' + minutes1;
+          if (minutes1 == 0) minutes1 = '00';
+          if (hours1 >= 12) {
+              if (hours1 == 12) {
+                  hours1 = hours1;
+                  minutes1 = minutes1 + " PM";
+              } else {
+                  hours1 = hours1 - 12;
+                  minutes1 = minutes1 + " PM";
+              }
+          } else {
+              hours1 = hours1;
+              minutes1 = minutes1 + " AM";
+          }
+          if (hours1 == 0) {
+              hours1 = 12;
+              minutes1 = minutes1;
+          }
+
+          $('.slider-time-friday').val(hours1 + ':' + minutes1);
+
+          var hours2 = Math.floor(ui.values[1] / 60);
+          var minutes2 = ui.values[1] - (hours2 * 60);
+
+          if (hours2.length == 1) hours2 = '0' + hours2;
+          if (minutes2.length == 1) minutes2 = '0' + minutes2;
+          if (minutes2 == 0) minutes2 = '00';
+          if (hours2 >= 12) {
+              if (hours2 == 12) {
+                  hours2 = hours2;
+                  minutes2 = minutes2 + " PM";
+              } else if (hours2 == 24) {
+                  hours2 = 11;
+                  minutes2 = "59 PM";
+              } else {
+                  hours2 = hours2 - 12;
+                  minutes2 = minutes2 + " PM";
+              }
+          } else {
+              hours2 = hours2;
+              minutes2 = minutes2 + " AM";
+          }
+
+          $('.slider-time2-friday').val(hours2 + ':' + minutes2);
+      }
+  });
+
+  $('#checkbox-friday').change(function(){
+      if (this.checked) {
+          $('#available-friday-input-slider').fadeIn('fast');            
+          $('.slider-time-friday').val("9:00 AM");
+          $('.slider-time2-friday').val("5:00 PM");
+          $('#slider-range-friday').slider('values', [540, 1020]);
+        }
+      else {
+          $('#available-friday-input-slider').fadeOut('fast');
+          $('.slider-time-friday').val("");
+          $('.slider-time2-friday').val("");
+      }                   
+  });
+
+  $("#slider-range-saturday").slider({
+      range: true,
+      min: 0,
+      max: 1440,
+      step: 15,
+      values: [540, 1020],
+      slide: function (e, ui) {
+          var hours1 = Math.floor(ui.values[0] / 60);
+          var minutes1 = ui.values[0] - (hours1 * 60);
+
+          if (hours1.length == 1) hours1 = '0' + hours1;
+          if (minutes1.length == 1) minutes1 = '0' + minutes1;
+          if (minutes1 == 0) minutes1 = '00';
+          if (hours1 >= 12) {
+              if (hours1 == 12) {
+                  hours1 = hours1;
+                  minutes1 = minutes1 + " PM";
+              } else {
+                  hours1 = hours1 - 12;
+                  minutes1 = minutes1 + " PM";
+              }
+          } else {
+              hours1 = hours1;
+              minutes1 = minutes1 + " AM";
+          }
+          if (hours1 == 0) {
+              hours1 = 12;
+              minutes1 = minutes1;
+          }
+
+          $('.slider-time-saturday').val(hours1 + ':' + minutes1);
+
+          var hours2 = Math.floor(ui.values[1] / 60);
+          var minutes2 = ui.values[1] - (hours2 * 60);
+
+          if (hours2.length == 1) hours2 = '0' + hours2;
+          if (minutes2.length == 1) minutes2 = '0' + minutes2;
+          if (minutes2 == 0) minutes2 = '00';
+          if (hours2 >= 12) {
+              if (hours2 == 12) {
+                  hours2 = hours2;
+                  minutes2 = minutes2 + " PM";
+              } else if (hours2 == 24) {
+                  hours2 = 11;
+                  minutes2 = "59 PM";
+              } else {
+                  hours2 = hours2 - 12;
+                  minutes2 = minutes2 + " PM";
+              }
+          } else {
+              hours2 = hours2;
+              minutes2 = minutes2 + " AM";
+          }
+
+          $('.slider-time2-saturday').val(hours2 + ':' + minutes2);
+      }
+  });
+
+  $('#checkbox-saturday').change(function(){
+      if (this.checked) {
+          $('#available-saturday-input-slider').fadeIn('fast');            
+          $('.slider-time-saturday').val("9:00 AM");
+          $('.slider-time2-saturday').val("5:00 PM");
+          $('#slider-range-saturday').slider('values', [540, 1020]);
+        }
+      else {
+          $('#available-saturday-input-slider').fadeOut('fast');
+          $('.slider-time-saturday').val("");
+          $('.slider-time2-saturday').val("");
+      }                   
+  });
+
+  $("#slider-range-sunday").slider({
+      range: true,
+      min: 0,
+      max: 1440,
+      step: 15,
+      values: [540, 1020],
+      slide: function (e, ui) {
+          var hours1 = Math.floor(ui.values[0] / 60);
+          var minutes1 = ui.values[0] - (hours1 * 60);
+
+          if (hours1.length == 1) hours1 = '0' + hours1;
+          if (minutes1.length == 1) minutes1 = '0' + minutes1;
+          if (minutes1 == 0) minutes1 = '00';
+          if (hours1 >= 12) {
+              if (hours1 == 12) {
+                  hours1 = hours1;
+                  minutes1 = minutes1 + " PM";
+              } else {
+                  hours1 = hours1 - 12;
+                  minutes1 = minutes1 + " PM";
+              }
+          } else {
+              hours1 = hours1;
+              minutes1 = minutes1 + " AM";
+          }
+          if (hours1 == 0) {
+              hours1 = 12;
+              minutes1 = minutes1;
+          }
+
+          $('.slider-time-sunday').val(hours1 + ':' + minutes1);
+
+          var hours2 = Math.floor(ui.values[1] / 60);
+          var minutes2 = ui.values[1] - (hours2 * 60);
+
+          if (hours2.length == 1) hours2 = '0' + hours2;
+          if (minutes2.length == 1) minutes2 = '0' + minutes2;
+          if (minutes2 == 0) minutes2 = '00';
+          if (hours2 >= 12) {
+              if (hours2 == 12) {
+                  hours2 = hours2;
+                  minutes2 = minutes2 + " PM";
+              } else if (hours2 == 24) {
+                  hours2 = 11;
+                  minutes2 = "59 PM";
+              } else {
+                  hours2 = hours2 - 12;
+                  minutes2 = minutes2 + " PM";
+              }
+          } else {
+              hours2 = hours2;
+              minutes2 = minutes2 + " AM";
+          }
+
+          $('.slider-time2-sunday').val(hours2 + ':' + minutes2);
+      }
+  });
+
+  $('#checkbox-sunday').change(function(){
+      if (this.checked) {
+          $('#available-sunday-input-slider').fadeIn('fast');            
+          $('.slider-time-sunday').val("9:00 AM");
+          $('.slider-time2-sunday').val("5:00 PM");
+          $('#slider-range-sunday').slider('values', [540, 1020]);
+        }
+      else {
+          $('#available-sunday-input-slider').fadeOut('fast');
+          $('.slider-time-sunday').val("");
+          $('.slider-time2-sunday').val("");
+      }                   
+  });
+
+  });
+
+  </script>
+
+{{else if organization}}  
+  <div id="organization_form">
+  <form method="post" action="/profile/update">
+     <div class="form-group">
+      <label>Organization Name</label>
+      <input type="text" class="form-control" placeholder="Name" name="name" value={{user.name}}>
+    </div>
+    <div class="form-group">
+      <label>Organization Role</label>
+      <input type="text" class="form-control" placeholder="Role" name="role" value={{profile.role}}>
+    </div>
+    <button type="submit" class="btn btn-default">Submit</button>
+  </form>
+  </div>
+
+{{/if}}

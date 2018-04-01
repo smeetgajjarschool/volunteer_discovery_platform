@@ -30,6 +30,11 @@ router.post('/register', function(req, res){
 	var username = req.body.username;
 	var password = req.body.password;
 	var password2 = req.body.password2;
+	
+	var subscriber_model = req.body.subscriber_model
+
+	var skills = [];
+	var interests = [];
 
 	// Validation
 	req.checkBody('name', 'Name is required').notEmpty();
@@ -48,6 +53,23 @@ router.post('/register', function(req, res){
 			errors:errors
 		});
 	} else {
+
+		for (var key in req.body) {
+			console.log(key);
+			if (key.indexOf("skill") !== -1){
+					skills.push(key.replace("skill_",""));
+
+			}
+			else if (key.indexOf("interest") !== -1){
+					interests.push(key.replace("interest_",""));
+
+			}
+		}
+
+		if (subscriber_model != "on"){
+			subscriber_model = false;
+		}
+
 		var newUser = new User({
 			name: name,
 			email:email,
@@ -56,6 +78,9 @@ router.post('/register', function(req, res){
 			user_type: user_type,
 			lat: lat,
 			lng: lng,
+			skills: skills,
+			interests: interests,
+			subscriber_model: subscriber_model		
 		});
 
 		User.createUser(newUser, function(err, user){

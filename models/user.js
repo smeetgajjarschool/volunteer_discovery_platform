@@ -34,6 +34,14 @@ var UserSchema = mongoose.Schema({
 		default: 'not_set'
 	},
 	created_time: { type: Date, default: Date.now },
+	subscriber_model: { type: Boolean, default: false},
+			skills: {
+		type: Array,
+	},
+		interests: {
+		type: Array,
+	}
+
 });
 
 
