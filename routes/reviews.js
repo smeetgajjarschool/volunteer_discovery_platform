@@ -6,24 +6,11 @@ var path = require('path');
 
 
 var Review = require('../models/review');
+var Profile = require('../models/profile');
+var Event = require('../models/events');
+var Application = require('../models/applications');
+var User = require('../models/user.js');
 
-function formatDate(date, separator, format) {
-    var d = new Date(date),
-        month = '' + (d.getMonth() + 1),
-        day = '' + d.getDate(),
-        year = d.getFullYear();
-
-    if (month.length < 2) month = '0' + month;
-    if (day.length < 2) day = '0' + day;
-
-    if (format = 1){
-    	return [year, month, day].join(separator);
-    }
-    else{
-    	return [month, day, year].join(separator);
-    }
-
-}
 
 /*
 router.get('/', ensureAuthenticated, function(req, res){
@@ -73,13 +60,15 @@ router.get('/', ensureAuthenticated, function(req, res){
 */
 
 // New Review
-router.get('/new', ensureAuthenticated, function(req, res){
+router.post('/new', ensureAuthenticated, function(req, res){
 	var review;
 	var query = {
 		event: req.body.event_id,
-		review_by: req.user._id,
+		review_by: req.user.id,
 		review_for: req.body.review_for
 	};
+	console.log("query is "+JSON.stringify(query))
+
 	var user_type = req.user.user_type;	
 
 	Review.find(query, function(err, review){
@@ -92,7 +81,7 @@ router.get('/new', ensureAuthenticated, function(req, res){
 		if (review.length === 0){
 
 		   	var query2 = {
-				_id: query.event
+				_id: req.body.event_id
 			};
 
 			Event.find(query2, function(err, event){
@@ -100,9 +89,9 @@ router.get('/new', ensureAuthenticated, function(req, res){
 			   		console.log("ERROR trying to find events");
 			   		throw err;
 			   	}
-
+			   	console.log("Event found was " + JSON.stringify(event))
 			   	var query3 = {
-					_id: query.review_for
+					_id: req.body.review_for
 				};
 
 			   	User.find(query3, function(err, review_for){
@@ -111,10 +100,12 @@ router.get('/new', ensureAuthenticated, function(req, res){
 				   		throw err;
 				   	}
 
+			   		console.log("Review_for user found was " + JSON.stringify(review_for))
+
 					var context = {
 						review: review[0], 
-						review_for: review_for,
-						event: event,
+						review_for: review_for[0],
+						event: event[0],
 						error_msg: req.flash('error_msg'),
 						user: req.user
 					};
@@ -127,48 +118,6 @@ router.get('/new', ensureAuthenticated, function(req, res){
 		}
 		else {
 			res.redirect("/review/edit");
-		}
-	});
-});
-
-// Edit Review
-router.get('/edit', ensureAuthenticated, function(req, res){
-	var review;
-	var query = {uid: req.user.id};
-	var user_type = req.user.user_type;
-	var user_id = req.user.id;
-
-	Review.find(query, function(err, review){
-	   	if(err) {
-	   		console.log("ERROR trying to find reviews");
-	   		throw err;
-	   	}
-	   	console.log("review is " + JSON.stringify(review));
-		if (review.length === 0){
-			res.redirect('/review/new');
-		}
-		else {
-		   	if (user_type === "volunteer"){
-		   		volunteer = 1;
-		   		organization = 0;
-		   	}
-		   	else {
-		   		volunteer = 0;
-		   		organization = 1;
-		   	}
-
-			dob = formatDate(review[0].dob, "-", 1)
-
-			var context = {
-				review: review[0], 
-				user: req.user, 
-				volunteer: volunteer,
-				organization: organization,
-				error_msg: req.flash('error_msg'),
-				dob: dob
-			};
-
-			res.render('edit_review', context);
 		}
 	});
 });
@@ -189,35 +138,141 @@ router.post('/create', function(req, res){
 	var errors = req.validationErrors();
 
 	if(errors){
-		res.render('new_review',{
-			errors:errors, 
-			name: name,
-			user: req.user, 
-			volunteer: volunteer,
-			organization: organization,
-			dob: dob
+		var review;
+		var query = {
+			event: req.body.event_id,
+			review_by: req.user.id,
+			review_for: req.body.review_for
+		};
+		console.log("query is "+JSON.stringify(query))
+
+		var user_type = req.user.user_type;	
+
+		Review.find(query, function(err, review){
+		   	if(err) {
+		   		console.log("ERROR trying to find reviews");
+		   		throw err;
+		   	}
+		   	console.log("review is " + JSON.stringify(review));
+
+			if (review.length === 0){
+
+			   	var query2 = {
+					_id: req.body.event_id
+				};
+
+				Event.find(query2, function(err, event){
+				   	if(err) {
+				   		console.log("ERROR trying to find events");
+				   		throw err;
+				   	}
+				   	console.log("Event found was " + JSON.stringify(event))
+				   	var query3 = {
+						_id: req.body.review_for
+					};
+
+				   	User.find(query3, function(err, review_for){
+					   	if(err) {
+					   		console.log("ERROR trying to find user");
+					   		throw err;
+					   	}
+
+				   		console.log("Review_for user found was " + JSON.stringify(review_for))
+
+						var context = {
+							errors: errors,
+							review: review[0], 
+							review_for: review_for[0],
+							event: event[0],
+							error_msg: req.flash('error_msg'),
+							user: req.user
+						};
+
+						res.render('new_review', context);
+
+					});
+			   	});
+
+			}
+			else {
+				res.redirect("/review/edit");
+			}
 		});
 	} 
 	else {
 		var newReview;
 		newReview = new Review({
-			review_by: review_by,
+			review_by_id: review_by,
 			event_id: event_id,
-			review_for: review_for,
+			review_for_id: review_for,
 			review: review,
 			rating: rating
 		});
 
-		Review.createReview(req.user, newReview, function(err, review){
+		console.log("Saving the new review")
+		Review.createReview(newReview, function(err, review){
 			if(err) throw err;
 			console.log(review);
 
 			req.flash('success_msg', 'You have successfully created your review.');
 
-			res.redirect('/review');
-
+			res.redirect('/profile');
 		});
 	}
+});
+
+// Edit Review
+router.post('/edit', ensureAuthenticated, function(req, res){
+	var review;
+	var query = {_id: req.body.review_id};
+
+	Review.find(query, function(err, review){
+	   	if(err) {
+	   		console.log("ERROR trying to find reviews");
+	   		throw err;
+	   	}
+	   	console.log("review is " + JSON.stringify(review));
+		
+		if (review.length !== 0){
+		   	var query2 = {
+				_id: req.body.event_id
+			};
+
+			Event.find(query2, function(err, event){
+			   	if(err) {
+			   		console.log("ERROR trying to find events");
+			   		throw err;
+			   	}
+			   	console.log("Event found was " + JSON.stringify(event))
+			   	var query3 = {
+					_id: req.body.review_for
+				};
+
+			   	User.find(query3, function(err, review_for){
+				   	if(err) {
+				   		console.log("ERROR trying to find user");
+				   		throw err;
+				   	}
+
+			   		console.log("Review_for user found was " + JSON.stringify(review_for))
+
+					var context = {
+						review: review[0], 
+						review_for: review_for[0],
+						event: event[0],
+						error_msg: req.flash('error_msg'),
+						user: req.user
+					};
+
+					res.render('edit_review', context);
+				});
+		   	});
+
+		}
+		else {
+			res.redirect("/review/new");
+		}
+	});
 });
 
 router.post('/update', function(req, res){
@@ -236,14 +291,58 @@ router.post('/update', function(req, res){
 	var errors = req.validationErrors();
 
 	if(errors){
-		res.render('new_review',{
-			errors:errors, 
-			name: name,
-			user: req.user, 
-			volunteer: volunteer,
-			organization: organization,
-			dob: dob
+		var review;
+		var query = {_id: req.body.review_id};
+
+		Review.find(query, function(err, review){
+		   	if(err) {
+		   		console.log("ERROR trying to find reviews");
+		   		throw err;
+		   	}
+		   	console.log("review is " + JSON.stringify(review));
+			
+			if (review.length !== 0){
+			   	var query2 = {
+					_id: req.body.event_id
+				};
+
+				Event.find(query2, function(err, event){
+				   	if(err) {
+				   		console.log("ERROR trying to find events");
+				   		throw err;
+				   	}
+				   	console.log("Event found was " + JSON.stringify(event))
+				   	var query3 = {
+						_id: req.body.review_for
+					};
+
+				   	User.find(query3, function(err, review_for){
+					   	if(err) {
+					   		console.log("ERROR trying to find user");
+					   		throw err;
+					   	}
+
+				   		console.log("Review_for user found was " + JSON.stringify(review_for))
+
+						var context = {
+							errors: errors,
+							review: review[0], 
+							review_for: review_for[0],
+							event: event[0],
+							error_msg: req.flash('error_msg'),
+							user: req.user
+						};
+
+						res.render('edit_review', context);
+					});
+			   	});
+
+			}
+			else {
+				res.redirect("/review/new");
+			}
 		});
+
 	} 
 	else {
 		var review;
@@ -270,7 +369,7 @@ router.post('/update', function(req, res){
 				rating: rating
 			});
 
-			Review.updateReview(req.user, editReview, function(err, review){
+			Review.updateReview(editReview, function(err, review){
 				if(err) throw err;
 				console.log(review);
 

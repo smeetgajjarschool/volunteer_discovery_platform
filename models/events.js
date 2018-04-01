@@ -24,6 +24,12 @@ var EventSchema = mongoose.Schema({
 		status: {
 		type: String,
 		default: "open"
+		/* Types: 
+			"open" = Inital state after creating an event
+			"full" = Event is full
+			"completed" = Event has been successfully completed
+			"cancelled" = Event was cancelled by organization
+		*/
 	},
 		num_volunteers: {
 		type: Number,
