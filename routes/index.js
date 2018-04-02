@@ -847,7 +847,7 @@ function ensureAuthenticated(req, res, next){
 
 var mailgunAuth = {
     auth: {
-      api_key: 'key-acf0e476f168e2d479cd087c28357604',
+      api_key: '//',
       domain: 'sandbox091e9e5e429d4b24aae968453fe23f11.mailgun.org'
     }//,
     //proxy: 'http://user:pass@localhost:8080' // optional proxy, default is false
