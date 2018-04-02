@@ -11,7 +11,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var client = new elasticsearch.Client({
-  host: 'localhost:9200',
+  host: 'http://artoflivingcanada.ca:9200',
   log: 'trace'
 });
 

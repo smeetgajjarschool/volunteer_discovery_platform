@@ -53,7 +53,7 @@ Hi volunteer, {{user.name}}
 
 function querySearch(query) {
         $.ajax({
-        url: "http://localhost:9200/test_events4/_search/",
+        url: "http://artoflivingcanada.ca:9200/test_events4/_search/",
         type: 'post',
         dataType: 'json',
         success: function(data) {
