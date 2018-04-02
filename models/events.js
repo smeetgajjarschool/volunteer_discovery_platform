@@ -21,20 +21,6 @@ var EventSchema = mongoose.Schema({
 		lng: {
 		type: Number
 	},
-		status: {
-		type: String,
-		default: "open"
-		/* Types: 
-			"open" = Inital state after creating an event
-			"full" = Event is full
-			"completed" = Event has been successfully completed
-			"cancelled" = Event was cancelled by organization
-		*/
-	},
-		num_volunteers: {
-		type: Number,
-		default: 1
-	},
 	created_time: { type: Date, default: Date.now },
 		skills: {
 		type: Array,
@@ -50,6 +36,12 @@ var EventSchema = mongoose.Schema({
 	{
 		type: String,
 		default: 'active'
+				/* Types: 
+			"active" = Inital state after creating an event
+			"full" = Event is full
+			"completed" = Event has been successfully completed
+			"cancelled" = Event was cancelled by organization
+		*/
 	},
 	max_volunteers:
 	{
