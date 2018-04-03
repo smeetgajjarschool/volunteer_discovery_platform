@@ -32,7 +32,7 @@ body,
       </tr>
       <tr>
         <th>Date of Birth</th>
-        <td>{{dob}}</td>
+        <td>{{profile.dob}}</td>
       </tr>
       <tr>
         <th>Interests</th>
@@ -91,7 +91,7 @@ body,
       </tr>
     </table>
     <br><br>
-    <{{#if pending_reviews}}
+    {{#if pending_reviews}}
       <table class="table table-striped">
         <tr>
           <th colspan="5">Pending Reviews</th>
