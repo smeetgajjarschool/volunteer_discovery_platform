@@ -26,10 +26,9 @@ router.post('/', ensureAuthenticated, function(req, res){
 	var user = User.getUserByUsername(req.body.friend_input, function(err, user){
 		if(!err && user){
 			console.log("USER IS " + user);
-			Friend.addFriend(req.user.username, req.body.friend_input, "/friends", 
+			Friend.addFriend(req.user.username, req.body.friend_input, "/profile/"+req.body.friend_input, 
 				function(err){
-		    		if (err) return console.log ("ADD FAIL OUT");
-		    		return console.log ("ADD GOOD OUT");
+		    		if (err) return console.log ("Failure in adding friend");
 			});
 		}
 		else{
