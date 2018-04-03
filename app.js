@@ -233,4 +233,25 @@ app.delete('/users/delete/:id', function(req,res){
 
 app.listen(3050, function() {
 	console.log('Server started on Port 3050');
+
+  if(process.env.NODE_ENV !== 'production') {
+  process.once('uncaughtException', function(err) {
+    console.error('FATAL: Uncaught exception.');
+    console.error(err.stack||err);
+    setTimeout(function(){
+      process.exit(1);
+    }, 100);
+  });
+}
+
 })
+
+if(process.env.NODE_ENV !== 'production') {
+  process.once('uncaughtException', function(err) {
+    console.error('FATAL: Uncaught exception.');
+    console.error(err.stack||err);
+    setTimeout(function(){
+      process.exit(1);
+    }, 100);
+  });
+}
