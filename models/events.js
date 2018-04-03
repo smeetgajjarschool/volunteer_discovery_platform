@@ -21,6 +21,9 @@ var EventSchema = mongoose.Schema({
 		lng: {
 		type: Number
 	},
+	location_name: {
+		type: String
+	},
 	created_time: { type: Date, default: Date.now },
 		skills: {
 		type: Array,

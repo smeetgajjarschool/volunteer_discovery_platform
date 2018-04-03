@@ -15,12 +15,16 @@ var ApplicationSchema = mongoose.Schema({
 		/* Types: 
 			"tbd" = Inital state after applying
 			"accepted" = Accepted by organization 
-			"rejected" = Rejected by organization
+			"declined" = Rejected by organization or volunteer didn't attend event after being accepted
 			"cancelled_org" = Cancelled by organization
 			"cancelled_vol" = Cancelled by organization
 			"completed" = Completed
 		*/
 
+	},
+	hours: {
+		type: Number,
+		default: 0
 	},
 	created_time: { type: Date, default: Date.now },
 	rating: {

@@ -78,6 +78,7 @@ router.get('/', ensureAuthenticated, function(req, res){
 															x['application'] = application;
 															x['event'] =  event;
 															x['organization_name'] = organization.name;
+															x['organization'] = organization;
 															console.log("x is " + JSON.stringify(x));
 															
 															user_apps.push(x);
@@ -155,27 +156,87 @@ router.post('/applications/:id', ensureAuthenticated, function(req, res){
 	query = {_id: req.params.id};
 
 	Application.find(query, function(err, application){
+		if(err) throw err;
+		var application = application[0];
+
+		console.log("application is " + JSON.stringify(application));
+
+		if (req.body.application_action == "accept"){
+			application.status = "accepted";
+		} else if (req.body.application_action == "decline") {
+			application.status = "declined";
+		}
+
+		Application.update(query, application, function(err) {
 			if(err) throw err;
-			var application = application[0];
+			var event_id = application.event_id;
 
-			console.log("application is " + JSON.stringify(application));
-
-			if (req.body.application_action == "accept"){
-				application.status = "accepted";
-			} else if (req.body.application_action == "decline") {
-				application.status = "declined";
-			}
-
-			Application.update(query, application, function(err) {
+			if (application.status === "accepted"){
+				query = {
+					_id: event_id
+				}
+				Event.find(query, function(err, event){
 					if(err) throw err;
+			
+					query = {
+						event_id: event_id,
+						status: "accepted"
+					};
 
-					var event_id = application.event_id;
-					res.redirect('/events/' + event_id);
-			})
+					console.log("event_id is " + event_id)
+					Application.find(query, function(err, app){
+						if(err) throw err;
 
+						console.log("app is " + JSON.stringify(app));
+						if(app.length !== 0 && app.length >= event[0].max_volunteers){
+
+							console.log("Number of volunteers required has been reached for event " + event_id)
+
+							event[0].status = "full"
+							event[0].save(function(err, eve){
+								if(err) throw err;
+								console.log("Saved event " + event_id + " status to full since event is full")	
+
+								query = {
+									event_id: event_id,
+									status: "tbd"
+								};
+
+								Application.find(query, function(err, applications){
+									if(err) throw err;
+
+									if (applications.length !== 0){
+										applications.forEach(function(entry, index){
+											entry.status = "declined"
+											entry.save(function(err, appl){
+												if(err) throw err;
+												console.log("Saved application " + entry._id + " to declined since event is full")										
+											});
+
+											if (applications.length === index+1){
+													res.redirect('/events/' + event_id);
+											}									
+										});
+									}
+									else{
+										res.redirect('/events/' + event_id);
+									}
+								});
+							});
+
+						}
+						else {
+							res.redirect('/events/' + event_id);
+						}
+					});
+				});
+
+			}
+			else {
+				res.redirect('/events/' + event_id);
+			}
+		});
 	});
-
-
 });
 
 
@@ -244,8 +305,15 @@ router.get('/events/:id', ensureAuthenticated, function(req, res){
 				var query = {event_id : req.params.id}
 				
 				var user_apps = [];
-				var user_accepted =[];
-
+				var user_accepted = [];
+				var user_declined = [];
+				var user_cancelled_org = [];
+				var user_cancelled_vol = [];
+				var user_completed = [];
+				var event_completed = (event[0].status === "completed");
+				var event_cancelled = (event[0].status === "cancelled");
+				var event_full = (event[0].status === "full");
+				var event_active = (event[0].status === "active");
 				Application.find(query).sort({created_time: -1}).exec(function(err, applications){
 
 						if(err) throw err;
@@ -273,18 +341,199 @@ router.get('/events/:id', ensureAuthenticated, function(req, res){
 									}else if (application.status =="accepted") {
 										user_accepted.push(x);
 									}
+									else if (application.status == "declined"){
+										user_declined.push(x);
+									}
+									else if (application.status == "cancelled_org"){
+										user_cancelled_org.push(x);
+									}
+									else if (application.status == "cancelled_vol"){
+										user_cancelled_vol.push(x);
+									}
+									else if (application.status == "completed"){
+										user_completed.push(x);
+									}
+
+
 
 									console.log("user_apps is " + JSON.stringify(x));
 								});
 						});
 
-					var context = {user : req.user, event: event[0], applications: JSON.stringify(applications), user_apps: user_apps, user_accepted: user_accepted};
+					var duration_hours = (event[0].event_end_date.getTime() - event[0].event_start_date.getTime())/(1000*3600);
+					var duration_minutes = Math.round((duration_hours-Math.floor(duration_hours))*60);
+					duration_hours = Math.floor(duration_hours);
+
+					var context = {
+						user : req.user, 
+						event: event[0], 
+						applications: JSON.stringify(applications), 
+						user_apps: user_apps, 
+						user_accepted: user_accepted, 
+						user_declined: user_declined, 
+						user_cancelled_org: user_cancelled_org, 
+						user_completed: user_completed,
+						event_completed: event_completed,
+						event_cancelled: event_cancelled,
+						event_full: event_full,
+						event_active: event_active,
+						duration_hours: duration_hours,
+						duration_minutes: duration_minutes
+					};
+
 					res.render('event_page', context);
 
 				});
 		 });
 });
 
+
+router.post('/change_status', ensureAuthenticated, function(req, res){
+	console.log("req.user is " + req.user);
+	var event_id = req.body.event_id
+	var application_id = req.body.application_id
+	var type = req.body.type
+	var duration_hours = req.body.duration_hours
+	var duration_minutes = req.body.duration_minutes
+
+	if (type == "event_completed"){
+		query = {
+			_id: event_id
+		}
+		Event.find(query, function(err, event){
+			if(err) throw err;
+
+			if (event.length !== 0){
+				event[0].status = "completed"
+				event[0].save(function(err, event){
+					if(err) throw err;
+					console.log("Saved Event (completed) " + event_id)
+					
+					res.redirect("/events/"+event_id)
+				});
+			}
+			else{
+				res.redirect("/events/"+event_id)
+			}
+		});
+	}
+	else if (type == "cancel_event"){
+		query = {
+			_id: event_id
+		}
+		Event.find(query, function(err, event){
+			if(err) throw err;
+
+			if (event.length !== 0){
+				event[0].status = "cancelled"
+				event[0].save(function(err, event){
+					if(err) throw err;
+					console.log("Saved Event (cancelled) " + event_id)
+					
+					query = {
+						event_id: event_id
+					}
+					Application.find(query, function(err, application){
+						if(err) throw err;
+
+						if (application.length !== 0){
+
+							application.forEach(function(entry, index){
+								entry.status = "cancelled_org"
+								entry.save(function(err, app){
+									if(err) throw err;
+									console.log("Saved Application (cancelled_org) " + entry._id)
+								});
+
+								if (application.length === index+1){
+									res.redirect("/events/"+event_id)
+								}
+							});
+						}
+						else{
+							res.redirect("/events/"+event_id)
+						}
+					});
+
+
+
+				});
+			}
+			else{
+				res.redirect("/events/"+event_id)
+			}
+		});
+
+	}
+	else if (type == "cancel_vol"){
+		query = {
+			_id: application_id
+		}
+		Application.find(query, function(err, application){
+			if(err) throw err;
+
+			if (application.length !== 0){
+				application[0].status = "cancelled_vol"
+				application[0].save(function(err, application){
+					if(err) throw err;
+					console.log("Saved Application (cancelled_vol) " + application_id)
+					
+					res.redirect("/")
+				});
+			}
+			else{
+				res.redirect("/")
+			}
+		});
+	}
+	else if (type == "attended"){
+		query = {
+			_id: application_id
+		}
+		Application.find(query, function(err, application){
+			if(err) throw err;
+
+			if (application.length !== 0){
+				application[0].hours = parseFloat(duration_hours)+(parseFloat(duration_minutes)/60.0)
+				application[0].status = "completed"
+				application[0].save(function(err, application){
+					if(err) throw err;
+					console.log("Saved Application (completed) " + application_id)
+					
+					res.redirect("/events/"+event_id)
+				});
+			}
+			else{
+				res.redirect("/events/"+event_id)
+			}
+		});
+	}
+	else if (type == "not_attended"){
+		query = {
+			_id: application_id
+		}
+		Application.find(query, function(err, application){
+			if(err) throw err;
+
+			if (application.length !== 0){
+				application[0].status = "declined"
+				application[0].save(function(err, application){
+					if(err) throw err;
+					console.log("Saved Application (declined) " + application_id)
+					
+					res.redirect("/events/"+event_id)
+				});
+			}
+			else{
+				res.redirect("/events/"+event_id)
+			}
+		});
+	}
+	else{
+		console.log("Invalid type submitted to /change_status. Redirecting to home")
+		res.redirect("/")
+	}
+});
 
 
 router.get('/events', ensureAuthenticated, function(req, res){
@@ -386,6 +635,7 @@ router.post('/events', function(req, res){
 	var event_type = req.body.event_type;
 	var max_volunteers = req.body.max_volunteers;
 	var subscriber_model = req.body.subscriber_model
+	var location_name = req.body.location_name;
 
 	var skills = [];
 	var interests = [];
@@ -436,6 +686,7 @@ router.post('/events', function(req, res){
 			event_end_date: end_date,
 			lat: lat,
 			lng: lng,
+			location_name: location_name,
 			organization_id: organization_id,
 			skills: skills,
 			interests: interests,
@@ -461,6 +712,7 @@ router.post('/events', function(req, res){
 							end_date: newEvent.event_end_date,
 							recurring: 'recurring',
 							location: { lat:lat, lon: lng},
+							location_name: newEvent.location_name,
 							organization_name: req.user.name,
 							event_type: event_type,
 							event_id: newEvent.id,
@@ -623,7 +875,7 @@ function test_sub(){
 								console.log("finding subs for " + event['event_name']);
 
 
-								//mark these subs as rejected, the user didn't respond to them
+								//mark these subs as declined, the user didn't respond to them
 								var query = {event_id: event['_id'], status: 'tbd', offer_number: global_sub_num};
 								Subscriber.find(query, function(err, sent_subs){
 									if(err) throw err;
@@ -635,10 +887,10 @@ function test_sub(){
 										var sent_sub = sent_subs[s];
 
 										console.log("rejecting sub is " + JSON.stringify(sent_sub));
-										//mark status are rejected
-										//sent_sub.status = 'rejected';
+										//mark status are declined
+										//sent_sub.status = 'declined';
 
-										Subscriber.update({_id: sent_sub._id}, { status: 'rejected' }, function(err, updatedSub) {
+										Subscriber.update({_id: sent_sub._id}, { status: 'declined' }, function(err, updatedSub) {
 											if(err) throw err;
 										});
 									

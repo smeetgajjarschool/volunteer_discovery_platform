@@ -21,7 +21,7 @@ var DataSchema = mongoose.Schema({
 		lng: {
 		type: Number
 	},
-	created_time: { type: Date, default: Date.now },
+	created_time: { type: Date, default: Date.now }
 });
 
 

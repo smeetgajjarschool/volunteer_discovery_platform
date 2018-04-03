@@ -37,7 +37,7 @@ Hi, {{user.name}}
 </h2>
 <hr>
 <h4>
-Create a new volunteer oppurtunity:
+Create a new volunteer oppertunity:
 </h4>
 
 <div id="event_create">
@@ -72,7 +72,7 @@ Create a new volunteer oppurtunity:
   </div>
 
 <label>Event Location</label>
-  <input id="pac-input" class="controls" type="text" placeholder="Search Box">
+  <input id="pac-input" class="controls" name="location_name" type="text" placeholder="Search Box">
 <div class="container" id="map-canvas" style="height:300px;"></div>
 
     <div class="form-group">
@@ -103,7 +103,7 @@ Create a new volunteer oppurtunity:
 
   <div class="form-group">
     <label>Maximum number of volunteers needed</label>
-    <input type="number" class="form-control" value="10" name="max_volunteers">
+    <input type="number" class="form-control" value="10" min="1" name="max_volunteers">
   </div>
 
   <div class="form-group">
