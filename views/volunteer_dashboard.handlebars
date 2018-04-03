@@ -4,7 +4,7 @@ Hi volunteer, {{user.name}}
 </h2>
 <p>Welcome to your dashboard</p>  
 <hr>
-
+<br>
 <script>
 $( document ).ready(function() {
   $("#my_apps_vol").hide();
@@ -39,25 +39,7 @@ $( document ).ready(function() {
       <br>
   {{/each}}
 </div>
-
-<div class="container">
-  <div class="row">
-      <div class="col-md-12" id="my_apps">
-
-      </div>
-      <div class="col-md-4">
-      <h4>Sort by: </h4>
-      <btn class="btn btn-primary" id="sort_start_date" style="width:100%">Start Date</btn>
-      <hr>
-      <btn class="btn btn-primary" id="sort_location" style="width:100%">Location</btn>
-      <h4 id="aggregation_results">Aggregations:</h4>
-      </div>
-
-  </div>
-</div>
-
-
-
+<br><br>
 <input id="search_input">
 <btn class="btn btn-primary" id="search_btn">Search</btn>
 
