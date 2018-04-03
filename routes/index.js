@@ -701,7 +701,7 @@ router.post('/events', function(req, res){
 
 
 
-		if (subscriber_model != true){
+			if (subscriber_model != true){
 
 					client.index({
 						index: 'test_events4',
@@ -733,45 +733,45 @@ router.post('/events', function(req, res){
 
 
 			//expects id from user table
-			var candidate = findSuitableCandidate(newEvent);
-			User.findById(candidate,function(err, user){
-				if(err) throw err;
-				var name = user.name;
-				var email = user.email;
+			// var candidate = findSuitableCandidate(newEvent);
+			// User.findById(candidate,function(err, user){
+			// 	if(err) throw err;
+			// 	var name = user.name;
+			// 	var email = user.email;
 			
-				var htmlEmail = 'Email will be sent to ' + email +'\n<p>Hi '+ name +'</p><h3>Please consider this new volunteer opportunity recommended for you!</h3><br/><table><tr><td style="background-color: #4ecdc4;border-color: #4c5764;border: 2px solid #45b7af;padding: 10px;text-align: center;"><a style="display: block;color: #ffffff;font-size: 12px;text-decoration: none;text-transform: uppercase;" href="localhost:3050/subscribe/'+newEvent.id+'/yes">Yes</a></td><td style="background-color: #cd4e9c;border-color: #4c5764;border: 2px solid #cd4e9c;padding: 10px;text-align: center;"><a style="display: block;color: #ffffff;font-size: 12px;text-decoration: none;text-transform: uppercase;" href="localhost:3050/subscribe/'+newEvent.id+'/no">No</a></td></tr></table>';
-				//send email to subscriber
-				nodemailerMailgun.sendMail({
-					from: 'team@volunteer.ga',
-					to: email, // An array if you have multiple recipients.
-					subject: 'New Volunteer Opportunity',
-					//'h:Reply-To': 'eventCreator@company.com',
-					//You can use "html:" to send HTML email content. It's magic!
-					html: htmlEmail,
-					//You can use "text:" to send plain-text content. It's oldschool!
-				//text: 'Mailgun rocks, pow pow!'
-				}, function (err, info) {
-					if (err) {
-						console.log('Error: ' + err);
-					}
-					else {
-						console.log('Response: ' + info);
-					}
-				});
-				//add subscription event to database
-				var newSubscriber = new Subscriber({
-					event_id: newEvent.id,
-					email_data: [{
-						user_id: candidate,
-						responded: false,
-						response: null
-					}]
-				});
-				Subscriber.createSubscriber(newSubscriber, function(err,user) {
+			// 	var htmlEmail = 'Email will be sent to ' + email +'\n<p>Hi '+ name +'</p><h3>Please consider this new volunteer opportunity recommended for you!</h3><br/><table><tr><td style="background-color: #4ecdc4;border-color: #4c5764;border: 2px solid #45b7af;padding: 10px;text-align: center;"><a style="display: block;color: #ffffff;font-size: 12px;text-decoration: none;text-transform: uppercase;" href="localhost:3050/subscribe/'+newEvent.id+'/yes">Yes</a></td><td style="background-color: #cd4e9c;border-color: #4c5764;border: 2px solid #cd4e9c;padding: 10px;text-align: center;"><a style="display: block;color: #ffffff;font-size: 12px;text-decoration: none;text-transform: uppercase;" href="localhost:3050/subscribe/'+newEvent.id+'/no">No</a></td></tr></table>';
+			// 	//send email to subscriber
+			// 	nodemailerMailgun.sendMail({
+			// 		from: 'team@volunteer.ga',
+			// 		to: email, // An array if you have multiple recipients.
+			// 		subject: 'New Volunteer Opportunity',
+			// 		//'h:Reply-To': 'eventCreator@company.com',
+			// 		//You can use "html:" to send HTML email content. It's magic!
+			// 		html: htmlEmail,
+			// 		//You can use "text:" to send plain-text content. It's oldschool!
+			// 	//text: 'Mailgun rocks, pow pow!'
+			// 	}, function (err, info) {
+			// 		if (err) {
+			// 			console.log('Error: ' + err);
+			// 		}
+			// 		else {
+			// 			console.log('Response: ' + info);
+			// 		}
+			// 	});
+			// 	//add subscription event to database
+			// 	var newSubscriber = new Subscriber({
+			// 		event_id: newEvent.id,
+			// 		email_data: [{
+			// 			user_id: candidate,
+			// 			responded: false,
+			// 			response: null
+			// 		}]
+			// 	});
+			// 	Subscriber.createSubscriber(newSubscriber, function(err,user) {
 
-				});
+			// 	});
 
-			});
+			// });
 			
 			req.flash('success_msg', 'Event was created');
 			var context = {user : req.user}
@@ -1107,11 +1107,11 @@ var mailgunAuth = {
   var nodemailerMailgun = nodemailer.createTransport(mg(mailgunAuth));
 
 //given event, select a suitable candidate to send email to
-function findSuitableCandidate(eventData) {
-	//for now just return a uid 
-	//TODO - actually recommend a proper candidate based on event
-	return '5a5b8bb79c77e933ac651ff2';
-}
+// function findSuitableCandidate(eventData) {
+// 	//for now just return a uid 
+// 	//TODO - actually recommend a proper candidate based on event
+// 	return '5a5b8bb79c77e933ac651ff2';
+// }
 
 
 
