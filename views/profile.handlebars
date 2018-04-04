@@ -32,7 +32,7 @@ body,
       </tr>
       <tr>
         <th>Date of Birth</th>
-        <td>{{profile.dob}}</td>
+        <td>{{dob}}</td>
       </tr>
       <tr>
         <th>Interests</th>
@@ -118,6 +118,8 @@ body,
           {{/each}}
         {{/each}}
       </table>
+      <br>
+      <a href="/profile/resume/{{user.username}}" class="btn btn-primary">Generate Resume</a>
     {{/if}}
   </div>
 {{else if organization}}  

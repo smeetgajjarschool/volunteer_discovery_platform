@@ -93,6 +93,50 @@ Handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
     }
 });
 
+function formatDate(date, separator, format) {
+    var d = new Date(date),
+        month = '' + (d.getMonth() + 1),
+        day = '' + d.getDate(),
+        year = d.getFullYear();
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+    if (format == 1){
+      return [year, month, day].join(separator);
+    }
+    else{
+      return [month, day, year].join(separator);
+    }
+
+}
+
+
+Handlebars.registerHelper('dateFormat', function(date, seperator, style) {
+  return formatDate(date, seperator, style);
+});
+
+Handlebars.registerHelper('timeFormat', function(hours) {
+  h = (Math.floor(parseFloat(hours)))
+  m = Math.round((parseFloat(hours)-Math.floor(parseFloat(hours)))*60) 
+  if (h == 1){
+    h_str = h + " hour"
+  }
+  else{
+    h_str = h + " hours"
+  }
+  if (m == 0){
+    return h_str;
+  }
+  else if (m == 1){
+    return h_str + " and " + m + " minute";
+  }
+  else{
+    return h_str + " and " + m + " minutes" ;
+  }
+});
+
+
 
 // var mongo = require('mongodb');
 // var mongoose = require('mongoose');
