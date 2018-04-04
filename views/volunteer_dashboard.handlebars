@@ -16,14 +16,15 @@ $( document ).ready(function() {
 
 <button class="btn btn-primary" id="my_apps_btn">My Applications</button>
 <div id = "my_apps_vol">
-  <h3> My Applications </h3>
+  <h3><b>My Applications </b> </h3>
   {{#each user_apps}}
-    <div class="row">
+    <div class="row" style="margin:5px">
       <h4 style="display: inline;vertical-align: center;">{{this.event.event_name}}</h4> 
       <p style="display: inline;vertical-align: center;color:red">Location: {{this.event.location_name}}</p>
       <br>
       <p style="display: inline;vertical-align: center;"> {{datetimeFormat this.event.event_start_date "/" 0 }} - {{datetimeFormat this.event.event_end_date "/" 0 }}</p>
       <p style="display: inline;vertical-align: center;color:red"><a href="/profile/{{this.organization.username}}">Organization: {{this.organization.name}}</a></p>
+      <br>
       <p style="display: inline;vertical-align: center;color:red">Event Status: {{this.event.status}}</p>
       <p style="display: inline;vertical-align: center;color:red">Application Status: {{this.application.status}}</p>
     </div>
@@ -34,6 +35,9 @@ $( document ).ready(function() {
         <input type="hidden" name="type" value="cancel_vol">
         <input type="submit" class="btn btn-danger" name="submit" value="Cancel">
       </form>
+          <br>
+          <hr>
+
      {{/ifCond}}
       <br>
   {{/each}}
@@ -42,7 +46,7 @@ $( document ).ready(function() {
 <input id="search_input">
 <btn class="btn btn-primary" id="search_btn">Search</btn>
 
-  <h3>Search Results</h3>
+  <h3><b>Search Results</b></h3>
 
   <div class="container">
   <div class="row">
