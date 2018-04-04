@@ -79,7 +79,10 @@ var ProfileSchema = mongoose.Schema({
 	description: {
 		type: String
 	},
-	created_time: { type: Date, default: Date.now },
+	phone_number: {
+		type: String
+	},
+	created_time: { type: Date, default: Date.now }
 });
 
 var Profile = module.exports = mongoose.model('Profile', ProfileSchema);
@@ -93,7 +96,8 @@ module.exports.createProfile = function(currUser, newProfile, callback){
 		dob: newProfile.dob, 
 		availability: newProfile.availability, 
 		type_org: newProfile.type_org,
-		description: newProfile.description
+		description: newProfile.description,		
+		phone_number: newProfile.phone_number
 	});
 
 	profileCreate.save(function(err, profileCreate){
@@ -116,8 +120,8 @@ module.exports.updateProfile = function(currUser, editProfile, callback){
 			profile.dob = editProfile.dob
 			profile.availability = editProfile.availability
 			profile.type_org = editProfile.type_org
-			profile.description = editProfile.description
-			
+			profile.description = editProfile.description,					
+			profile.phone_number = editProfile.phone_number			
 			profile.save(function(err, profile){
 				if(err) {
 					return console.error(err);

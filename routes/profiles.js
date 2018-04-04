@@ -385,6 +385,7 @@ router.post('/create', function(req, res){
 	var name = req.body.name;
 	var dob = req.body.dob;
 	var interests = req.body.interests;
+	var phone_number = req.body.phone_number;
 	console.log(interests);
 	var skills = req.body.skills
 		console.log(skills);
@@ -435,6 +436,7 @@ router.post('/create', function(req, res){
 	else {
 		req.checkBody('description', 'Organization Description is required').notEmpty();
 		req.checkBody('type_org', 'Type of Organization is required').notEmpty();
+		req.checkBody('phone_number', 'Phone Number is required').notEmpty();
 	}
 
 	var errors = req.validationErrors();
@@ -460,7 +462,8 @@ router.post('/create', function(req, res){
 			newProfile = new Profile({
 				uid: req.user.id,
 				type_org: type_org,
-				description: description
+				description: description,
+				phone_number: phone_number
 			});
 		}
 
@@ -484,9 +487,8 @@ router.post('/update', function(req, res){
 	var interests = req.body.interests;
 	console.log(interests);
 	var skills = req.body.skills;
-		console.log(skills);
-		console.log(skills[0]);
 	var dob = req.body.dob;
+	var phone_number = req.body.phone_number;
 	var availability = {
 		monday: {
 			from: req.body.availability_monday_from,
@@ -532,6 +534,7 @@ router.post('/update', function(req, res){
 	else {
 		req.checkBody('description', 'Organization Description is required').notEmpty();
 		req.checkBody('type_org', 'Type of Organization is required').notEmpty();
+		req.checkBody('phone_number', 'Phone Number is required').notEmpty();
 	}
 
 	var errors = req.validationErrors();
@@ -570,7 +573,8 @@ router.post('/update', function(req, res){
 				editProfile = new Profile({
 					_id: pid,
 					type_org: type_org,
-					description: description
+					description: description,
+					phone_number: phone_number
 				});
 			}
 

@@ -30,7 +30,8 @@ router.post('/register', function(req, res){
 	var username = req.body.username;
 	var password = req.body.password;
 	var password2 = req.body.password2;
-	
+	var address = req.body.address;
+	console.log("ADDRESS " + address)
 	var subscriber_model = req.body.subscriber_model
 
 	var skills = [];
@@ -39,8 +40,8 @@ router.post('/register', function(req, res){
 	// Validation
 	req.checkBody('name', 'Name is required').notEmpty();
 	req.checkBody('email', 'Email is required').notEmpty();
-	req.checkBody('lat', 'Location is required').notEmpty();
-	req.checkBody('lng', 'Location is required').notEmpty();
+	req.checkBody('lat', 'A valid location is required').notEmpty();
+	req.checkBody('lng', 'A valid location is required').notEmpty();
 	req.checkBody('email', 'Email is not valid').isEmail();
 	req.checkBody('username', 'Username is required').notEmpty();
 	req.checkBody('password', 'Password is required').notEmpty();
@@ -80,7 +81,8 @@ router.post('/register', function(req, res){
 			lng: lng,
 			skills: skills,
 			interests: interests,
-			subscriber_model: subscriber_model		
+			subscriber_model: subscriber_model,
+			address: address	
 		});
 
 		User.createUser(newUser, function(err, user){
