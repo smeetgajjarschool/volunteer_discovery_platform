@@ -945,6 +945,9 @@ function test_sub(){
 													var candidates_list = find_and_send_to_best_canditate(event['_id'],global_sub_num);
 
 															
+												}else
+												{
+													console.log("this event is full");
 												}
 												
 
@@ -991,7 +994,7 @@ ml_collection.find({event_id: event_id}, async function (err, ml_object) {
 	for(var p = 0; p < names.length; p++)
 	{
 		var username = names[p];
-		var result = await name_available(username, offer_number);
+		var result = await name_available(username, offer_number, event_id);
 
 		console.log("result is " + JSON.stringify(result));
 
@@ -1033,7 +1036,7 @@ function send_offer(event_id, volunteer_id, global_offer_number) {
 
 							//var htmlEmail = 'Email will be sent to ' + email +'\n<p>Hi '+ name +'</p><h3>Please consider this new volunteer opportunity recommended for you!</h3><br/><table><tr><td style="background-color: #4ecdc4;border-color: #4c5764;border: 2px solid #45b7af;padding: 10px;text-align: center;"><a style="display: block;color: #ffffff;font-size: 12px;text-decoration: none;text-transform: uppercase;" href="localhost:3050/subscribe/'+newEvent.id+'/yes">Yes</a></td><td style="background-color: #cd4e9c;border-color: #4c5764;border: 2px solid #cd4e9c;padding: 10px;text-align: center;"><a style="display: block;color: #ffffff;font-size: 12px;text-decoration: none;text-transform: uppercase;" href="localhost:3050/subscribe/'+newEvent.id+'/no">No</a></td></tr></table>';
 							//send email to subscriber
-							var htmlEmail = '<!DOCTYPE html> <html> <head> <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" /> <link href="https://fonts.googleapis.com/css?family=Rajdhani" rel="stylesheet"> <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script> <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> <style> body { font-family: "Rajdhani", sans-serif; } hr { margin-top: 0px; margin-bottom: 0px; } #button1 , #button2 { display:inline-block; /**other codes**/ } </style> </head> <body> <div class="container"> <div class="row"> <h3>Hi,' +  name +'</h3> <h3>Please consider this new volunteer opportunity recommended for you.</h3> <br> <p>Organization Name: Sick Kids Hospital </p> <p>Event Name: ' +  event.event_name + ' </p> <p>Event Location (Lat/Lon): ' + event.lat + '/' + event.lon  +' </p> <p>Event Date: ' + event.event_start_date +' to ' + event.event_end_date + '</p> <br> <form action="http://localhost:3050/subscribe/'  + newSubscriber._id + '/yes" id="button1" method="get"> <input type="submit" class="btn btn-success" id="button1" value="Accept"/> </form> <form method="get" action="http://localhost:3050/subscribe/' + newSubscriber._id +'/no" id="button2"> <input type="submit" class="btn btn-danger" id="button1" value="Decline"/> </form> </div> <br><br> <br> <footer class="footer"> <p>© 2017 Volunteer Discovery Platform.</p> </footer> </div> </body> </html>';
+							var htmlEmail = '<!DOCTYPE html> <html> <head> <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" /> <link href="https://fonts.googleapis.com/css?family=Rajdhani" rel="stylesheet"> <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script> <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> <style> body { font-family: "Rajdhani", sans-serif; } hr { margin-top: 0px; margin-bottom: 0px; } #button1 , #button2 { display:inline-block; /**other codes**/ } </style> </head> <body> <div class="container"> <div class="row"> <h3>Hi,' +  name +'</h3> <h3>Please consider this new volunteer opportunity recommended for you.</h3> <br> <p>Organization Name: Sick Kids Hospital </p> <p>Event Name: ' +  event.event_name + ' </p> <p>Event Location (Lat/Lon): ' + event.lat + '/' + event.lon  +' </p> <p>Event Date: ' + event.event_start_date +' to ' + event.event_end_date + '</p> <br> <form action="http://volunteer.ga/subscribe/'  + newSubscriber._id + '/yes" id="button1" method="get"> <input type="submit" class="btn btn-success" id="button1" value="Accept"/> </form> <form method="get" action="http://volunteer.ga/subscribe/' + newSubscriber._id +'/no" id="button2"> <input type="submit" class="btn btn-danger" id="button1" value="Decline"/> </form> </div> <br><br> <br> <footer class="footer"> <p>© 2017 Volunteer Discovery Platform.</p> </footer> </div> </body> </html>';
 
 							nodemailerMailgun.sendMail({
 								from: 'team@volunteer.ga',
@@ -1068,7 +1071,7 @@ function send_offer(event_id, volunteer_id, global_offer_number) {
 	});
 }
 
-function name_available(username, global_offer_number){
+function name_available(username, global_offer_number,event_id){
 
 return new Promise(function(resolve, reject) {
 
@@ -1079,7 +1082,7 @@ return new Promise(function(resolve, reject) {
 				//console.log("volunteer is " + JSON.stringify(volunteer) + " global offer number is " + global_offer_number);
 
 						//find if we sent this person an offer
-						var available = await sub_offer_not_sent_check(volunteer[0]._id, global_offer_number);
+						var available = await sub_offer_not_sent_check(volunteer[0]._id, global_offer_number, event_id);
 
 						console.log("available is " + available);
 
@@ -1094,7 +1097,7 @@ return new Promise(function(resolve, reject) {
 });
 }
 
-function sub_offer_not_sent_check(volunteer_id, global_offer_number) {
+function sub_offer_not_sent_check(volunteer_id, global_offer_number, event_id) {
 		return new Promise(function(resolve, reject) {
 
 		console.log("volunteer_id is " + volunteer_id);
@@ -1102,11 +1105,26 @@ function sub_offer_not_sent_check(volunteer_id, global_offer_number) {
 					if (err) throw err;
 					console.log("sub offer is " + JSON.stringify(sub_offer));
 					if (sub_offer == null) {
-						resolve(true);
+
+						 Subscriber.findOne( {volunteer_id: volunteer_id, event_id: event_id}, function(err, sub_offer2){
+						 		 if (err) throw err;
+
+						 //check if this person was offered this event before
+
+								 if (sub_offer2 == null) {
+								 		resolve(true);
+								 }
+								 else
+								 {
+								 		resolve(false);
+								 }
+
+						 });
+
 					}
 					else {
 						resolve(false);
-					}
+					} 
 
 				});
 	
@@ -1115,9 +1133,10 @@ function sub_offer_not_sent_check(volunteer_id, global_offer_number) {
 
 
 //runs every 10 minutes
-var cronJob = cron.job("*/30 * * * * *", test_sub);
+//var cronJob = cron.job("*/30 * * * * *", test_sub);
 
 //cronJob.start();
+//test_sub();
 
 function ensureAuthenticated(req, res, next){
 	if(req.isAuthenticated()){
