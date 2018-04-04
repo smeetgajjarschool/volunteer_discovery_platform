@@ -636,7 +636,7 @@ router.post('/events', function(req, res){
 	var max_volunteers = req.body.max_volunteers;
 	var subscriber_model = req.body.subscriber_model
 	var location_name = req.body.location_name;
-
+	var description = req.body.description;
 	var skills = [];
 	var interests = [];
 	var eventids = [];
@@ -649,6 +649,7 @@ router.post('/events', function(req, res){
 	req.checkBody('end_date', 'Start Date is required').notEmpty();
 	req.checkBody('organization_id', 'organization_id is required').notEmpty();
 	req.checkBody('event_type', 'event_type is required').notEmpty();
+	req.checkBody('description', 'description is required').notEmpty();
 
 
 	var errors = req.validationErrors();
@@ -691,7 +692,8 @@ router.post('/events', function(req, res){
 			skills: skills,
 			interests: interests,
 			subscriber_model: subscriber_model,
-			max_volunteers: max_volunteers
+			max_volunteers: max_volunteers,
+			description: description
 		});
 
 

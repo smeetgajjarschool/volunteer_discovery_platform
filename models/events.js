@@ -50,6 +50,10 @@ var EventSchema = mongoose.Schema({
 	{
 		type: Number,
 		default: 10
+	},
+	description:
+	{
+		type: String
 	}
 });
 
