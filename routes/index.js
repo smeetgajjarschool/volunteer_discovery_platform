@@ -658,6 +658,9 @@ function test_sub(){
 													var candidates_list = find_and_send_to_best_canditate(event['_id'],global_sub_num);
 
 															
+												}else
+												{
+													console.log("this event is full");
 												}
 												
 
@@ -704,7 +707,7 @@ ml_collection.find({event_id: event_id}, async function (err, ml_object) {
 	for(var p = 0; p < names.length; p++)
 	{
 		var username = names[p];
-		var result = await name_available(username, offer_number);
+		var result = await name_available(username, offer_number, event_id);
 
 		console.log("result is " + JSON.stringify(result));
 
@@ -781,7 +784,7 @@ function send_offer(event_id, volunteer_id, global_offer_number) {
 	});
 }
 
-function name_available(username, global_offer_number){
+function name_available(username, global_offer_number,event_id){
 
 return new Promise(function(resolve, reject) {
 
@@ -792,7 +795,7 @@ return new Promise(function(resolve, reject) {
 				//console.log("volunteer is " + JSON.stringify(volunteer) + " global offer number is " + global_offer_number);
 
 						//find if we sent this person an offer
-						var available = await sub_offer_not_sent_check(volunteer[0]._id, global_offer_number);
+						var available = await sub_offer_not_sent_check(volunteer[0]._id, global_offer_number, event_id);
 
 						console.log("available is " + available);
 
@@ -807,7 +810,7 @@ return new Promise(function(resolve, reject) {
 });
 }
 
-function sub_offer_not_sent_check(volunteer_id, global_offer_number) {
+function sub_offer_not_sent_check(volunteer_id, global_offer_number, event_id) {
 		return new Promise(function(resolve, reject) {
 
 		console.log("volunteer_id is " + volunteer_id);
@@ -815,11 +818,26 @@ function sub_offer_not_sent_check(volunteer_id, global_offer_number) {
 					if (err) throw err;
 					console.log("sub offer is " + JSON.stringify(sub_offer));
 					if (sub_offer == null) {
-						resolve(true);
+
+						 Subscriber.findOne( {volunteer_id: volunteer_id, event_id: event_id}, function(err, sub_offer2){
+						 		 if (err) throw err;
+
+						 //check if this person was offered this event before
+
+								 if (sub_offer2 == null) {
+								 		resolve(true);
+								 }
+								 else
+								 {
+								 		resolve(false);
+								 }
+
+						 });
+
 					}
 					else {
 						resolve(false);
-					}
+					} 
 
 				});
 	
@@ -828,9 +846,10 @@ function sub_offer_not_sent_check(volunteer_id, global_offer_number) {
 
 
 //runs every 10 minutes
-var cronJob = cron.job("*/30 * * * * *", test_sub);
+//var cronJob = cron.job("*/30 * * * * *", test_sub);
 
 //cronJob.start();
+//test_sub();
 
 function ensureAuthenticated(req, res, next){
 	if(req.isAuthenticated()){
