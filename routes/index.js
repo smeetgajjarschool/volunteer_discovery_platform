@@ -320,68 +320,101 @@ router.get('/events/:id', ensureAuthenticated, function(req, res){
 
 						console.log("applications are " + JSON.stringify(applications));
 
-						applications.forEach(function(application){
-							//find the user's information
+						if (applications.length !== 0){
+							applications.forEach(function(application, index){
+								//find the user's information
 
-								var user_query = {_id: application.volunteer_id};
-
-
-								User.find(user_query, function(err, volunteer) {
-									if(err) throw err;
+									var user_query = {_id: application.volunteer_id};
 
 
-									x = {};
-									x['volunteer'] = volunteer[0];
-									x['application'] = application;
-									console.log("volunteer is " + JSON.stringify(volunteer));
-									console.log("x is " + JSON.stringify(x));
-
-									if (application.status =="tbd") {
-										user_apps.push(x);
-									}else if (application.status =="accepted") {
-										user_accepted.push(x);
-									}
-									else if (application.status == "declined"){
-										user_declined.push(x);
-									}
-									else if (application.status == "cancelled_org"){
-										user_cancelled_org.push(x);
-									}
-									else if (application.status == "cancelled_vol"){
-										user_cancelled_vol.push(x);
-									}
-									else if (application.status == "completed"){
-										user_completed.push(x);
-									}
+									User.find(user_query, function(err, volunteer) {
+										if(err) throw err;
 
 
+										x = {};
+										x['volunteer'] = volunteer[0];
+										x['application'] = application;
+										console.log("volunteer is " + JSON.stringify(volunteer));
+										console.log("x is " + JSON.stringify(x));
 
-									console.log("user_apps is " + JSON.stringify(x));
-								});
-						});
+										if (application.status =="tbd") {
+											user_apps.push(x);
+										}else if (application.status =="accepted") {
+											user_accepted.push(x);
+										}
+										else if (application.status == "declined"){
+											user_declined.push(x);
+										}
+										else if (application.status == "cancelled_org"){
+											user_cancelled_org.push(x);
+										}
+										else if (application.status == "cancelled_vol"){
+											user_cancelled_vol.push(x);
+										}
+										else if (application.status == "completed"){
+											user_completed.push(x);
+										}
 
-					var duration_hours = (event[0].event_end_date.getTime() - event[0].event_start_date.getTime())/(1000*3600);
-					var duration_minutes = Math.round((duration_hours-Math.floor(duration_hours))*60);
-					duration_hours = Math.floor(duration_hours);
 
-					var context = {
-						user : req.user, 
-						event: event[0], 
-						applications: JSON.stringify(applications), 
-						user_apps: user_apps, 
-						user_accepted: user_accepted, 
-						user_declined: user_declined, 
-						user_cancelled_org: user_cancelled_org, 
-						user_completed: user_completed,
-						event_completed: event_completed,
-						event_cancelled: event_cancelled,
-						event_full: event_full,
-						event_active: event_active,
-						duration_hours: duration_hours,
-						duration_minutes: duration_minutes
-					};
 
-					res.render('event_page', context);
+										console.log("user_apps is " + JSON.stringify(x));
+
+										if (index+1 === applications.length){
+											var duration_hours = (event[0].event_end_date.getTime() - event[0].event_start_date.getTime())/(1000*3600);
+											var duration_minutes = Math.round((duration_hours-Math.floor(duration_hours))*60);
+											duration_hours = Math.floor(duration_hours);
+
+											var context = {
+												user : req.user, 
+												event: event[0], 
+												applications: JSON.stringify(applications), 
+												user_apps: user_apps, 
+												user_accepted: user_accepted, 
+												user_declined: user_declined, 
+												user_cancelled_org: user_cancelled_org, 
+												user_completed: user_completed,
+												event_completed: event_completed,
+												event_cancelled: event_cancelled,
+												event_full: event_full,
+												event_active: event_active,
+												duration_hours: duration_hours,
+												duration_minutes: duration_minutes
+											};
+
+											res.render('event_page', context);
+										}
+									});
+
+
+
+							});
+						}
+						else{
+							var duration_hours = (event[0].event_end_date.getTime() - event[0].event_start_date.getTime())/(1000*3600);
+							var duration_minutes = Math.round((duration_hours-Math.floor(duration_hours))*60);
+							duration_hours = Math.floor(duration_hours);
+
+							var context = {
+								user : req.user, 
+								event: event[0], 
+								applications: JSON.stringify(applications), 
+								user_apps: user_apps, 
+								user_accepted: user_accepted, 
+								user_declined: user_declined, 
+								user_cancelled_org: user_cancelled_org, 
+								user_completed: user_completed,
+								event_completed: event_completed,
+								event_cancelled: event_cancelled,
+								event_full: event_full,
+								event_active: event_active,
+								duration_hours: duration_hours,
+								duration_minutes: duration_minutes
+							};
+
+							res.render('event_page', context);
+						}
+
+
 
 				});
 		 });

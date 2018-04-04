@@ -30,7 +30,7 @@ body,
       </tr>
       <tr>
         <th>Date of Birth</th>
-        <td>{{profile.dob}}</td>
+        <td>{{dateFormat profile.dob "/" 0}}</td>
       </tr>
       <tr>
         <th>Interests</th>
@@ -106,7 +106,7 @@ body,
             <td>{{this.event.event_name}}</td>
             <td>{{this.user.name}}</td>
             <td>{{this.event.location_name}}</td>
-            <td>{{this.event.event_start_date}}</td>
+            <td>{{datetimeFormat this.event.event_start_date "/" 0 }}</td>
           </tr>
         {{/each}}
       </table><br>
@@ -212,7 +212,7 @@ body,
             <td>{{this.event_name}}</td>
             <td>{{this.max_volunteers}}</td>
             <td>{{this.location_name}}</td>
-            <td>{{this.event_start_date}}</td>
+            <td>{{datetimeFormat this.event_start_date "/" 0 }}</td>
           </tr>
         {{/each}}
       </table><br>

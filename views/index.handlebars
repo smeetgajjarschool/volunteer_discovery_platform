@@ -14,16 +14,16 @@ Hi, {{user.name}}
         <th>Event Name</th>
         <th>Start Date</th>
         <th>End Date</th>
-        <th>Lat/Lng</th>
+        <th>Location</th>
       </tr>
     </thead>
     <tbody>
       {{#each events}}
           <tr>
             <td><a href="/events/{{_id}}">{{event_name}}</a></td>
-            <td>{{event_start_date}}</td>
-            <td>{{event_end_date}}</td>
-            <td>{{lat}}/{{lng}}</td>
+            <td>{{datetimeFormat event_start_date "/" 0  }}</td>
+            <td>{{datetimeFormat event_end_date "/" 0 }}</td>
+            <td>{{location_name}}</td>
 
           </tr>
       {{/each}}

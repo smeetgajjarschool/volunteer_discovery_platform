@@ -16,10 +16,9 @@ var cors = require('cors')
 var mongo = require('mongodb');
 var mongoose = require('mongoose');
 
-mongoose.connect('mongodb://localhost/loginapp');
+//mongoose.connect('mongodb://localhost/loginapp');
+mongoose.connect('mongodb://user2:password@ds251588.mlab.com:51588/volunteer-cloud');
 var db = mongoose.connection;
-//mongoose.connect('mongodb://user2:password@ds251588.mlab.com:51588/volunteer-cloud');
-//var db = mongoose.connection;
 
 
 
@@ -111,9 +110,40 @@ function formatDate(date, separator, format) {
 
 }
 
+function formatDateTime(date, separator, format) {
+    var d = new Date(date),
+        month = '' + (d.getMonth() + 1),
+        day = '' + d.getDate(),
+        year = d.getFullYear();
+
+        var hours = d.getHours();
+        var minutes = d.getMinutes();
+        var ampm = hours >= 12 ? 'pm' : 'am';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // the hour '0' should be '12'
+        minutes = minutes < 10 ? '0'+minutes : minutes;
+        var strTime = hours + ':' + minutes + ' ' + ampm;
+
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+    if (format == 1){
+      return [year, month, day].join(separator) + " " + strTime;
+    }
+    else{
+      return [month, day, year].join(separator) + " " + strTime;
+    }
+
+}
+
 
 Handlebars.registerHelper('dateFormat', function(date, seperator, style) {
   return formatDate(date, seperator, style);
+});
+
+Handlebars.registerHelper('datetimeFormat', function(date, seperator, style) {
+  return formatDateTime(date, seperator, style);
 });
 
 Handlebars.registerHelper('timeFormat', function(hours) {
