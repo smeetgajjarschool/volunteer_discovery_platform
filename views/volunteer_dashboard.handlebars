@@ -1,10 +1,45 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <h2>
 Hi volunteer, {{user.name}}
 </h2>
 <p>Welcome to your dashboard</p>  
 <hr>
+<br>
+<script>
+$( document ).ready(function() {
+  $("#my_apps_vol").hide();
+  $("#my_apps_btn").click(function(){
+    $("#my_apps_vol").toggle();
+  });
+});
+</script>
 
-
+<button class="btn btn-primary" id="my_apps_btn">My Applications</button>
+<div id = "my_apps_vol">
+  <h3> My Applications </h3>
+  {{#each user_apps}}
+    <div class="row">
+      <h4 style="display: inline;vertical-align: center;">{{this.event.event_name}}</h4> 
+      <p style="display: inline;vertical-align: center;color:red">Lat/Lon: {{this.event.lat}}/{{this.event.lng}}</p>
+      <p style="display: inline;vertical-align: center;color:red">Location: {{this.event.location_name}}</p>
+      <br>
+      <p style="display: inline;vertical-align: center;"> {{this.event.event_start_date}} - {{this.event.event_end_date}}</p>
+      <p style="display: inline;vertical-align: center;color:red">Organization: {{this.organization.name}}</p>
+      <p style="display: inline;vertical-align: center;color:red">Event Status: {{this.event.status}}</p>
+      <p style="display: inline;vertical-align: center;color:red">Application Status: {{this.application.status}}</p>
+    </div>
+     {{#ifCond this.application.status "==" "tbd"}}
+      <form action="/change_status" method="post">
+        <input type="hidden" name="event_id" value="{{this.event._id}}">
+        <input type="hidden" name="application_id" value="{{this.application._id}}">
+        <input type="hidden" name="type" value="cancel_vol">
+        <input type="submit" class="btn btn-danger" name="submit" value="Cancel">
+      </form>
+     {{/ifCond}}
+      <br>
+  {{/each}}
+</div>
+<br><br>
 <input id="search_input">
 <btn class="btn btn-primary" id="search_btn">Search</btn>
 
@@ -35,6 +70,7 @@ Hi volunteer, {{user.name}}
         <div class="row">
              <h4 style="display: inline;vertical-align: center;">{{event_name}}</h4> 
              <p style="display: inline;vertical-align: center;color:red">Lat/Lon: {{lat}}/{lng}}</p>
+             <p style="display: inline;vertical-align: center;color:red">Location: {{location_name}}</p>
              <br>
              <p style="display: inline;vertical-align: center;"> {{event_start_date}} - {{event_end_date}}</p>
 
@@ -53,7 +89,7 @@ Hi volunteer, {{user.name}}
 
 function querySearch(query) {
         $.ajax({
-        url: "http://localhost:9200/test_events4/_search/",
+        url: "http://artoflivingcanada.ca:9200/test_events4/_search/",
         type: 'post',
         dataType: 'json',
         success: function(data) {

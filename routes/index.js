@@ -11,7 +11,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var client = new elasticsearch.Client({
-  host: 'localhost:9200',
+  host: 'http://artoflivingcanada.ca:9200',
   log: 'trace'
 });
 
@@ -78,6 +78,7 @@ router.get('/', ensureAuthenticated, function(req, res){
 															x['application'] = application;
 															x['event'] =  event;
 															x['organization_name'] = organization.name;
+															x['organization'] = organization;
 															console.log("x is " + JSON.stringify(x));
 															
 															user_apps.push(x);
@@ -155,27 +156,87 @@ router.post('/applications/:id', ensureAuthenticated, function(req, res){
 	query = {_id: req.params.id};
 
 	Application.find(query, function(err, application){
+		if(err) throw err;
+		var application = application[0];
+
+		console.log("application is " + JSON.stringify(application));
+
+		if (req.body.application_action == "accept"){
+			application.status = "accepted";
+		} else if (req.body.application_action == "decline") {
+			application.status = "declined";
+		}
+
+		Application.update(query, application, function(err) {
 			if(err) throw err;
-			var application = application[0];
+			var event_id = application.event_id;
 
-			console.log("application is " + JSON.stringify(application));
-
-			if (req.body.application_action == "accept"){
-				application.status = "accepted";
-			} else if (req.body.application_action == "decline") {
-				application.status = "declined";
-			}
-
-			Application.update(query, application, function(err) {
+			if (application.status === "accepted"){
+				query = {
+					_id: event_id
+				}
+				Event.find(query, function(err, event){
 					if(err) throw err;
+			
+					query = {
+						event_id: event_id,
+						status: "accepted"
+					};
 
-					var event_id = application.event_id;
-					res.redirect('/events/' + event_id);
-			})
+					console.log("event_id is " + event_id)
+					Application.find(query, function(err, app){
+						if(err) throw err;
 
+						console.log("app is " + JSON.stringify(app));
+						if(app.length !== 0 && app.length >= event[0].max_volunteers){
+
+							console.log("Number of volunteers required has been reached for event " + event_id)
+
+							event[0].status = "full"
+							event[0].save(function(err, eve){
+								if(err) throw err;
+								console.log("Saved event " + event_id + " status to full since event is full")	
+
+								query = {
+									event_id: event_id,
+									status: "tbd"
+								};
+
+								Application.find(query, function(err, applications){
+									if(err) throw err;
+
+									if (applications.length !== 0){
+										applications.forEach(function(entry, index){
+											entry.status = "declined"
+											entry.save(function(err, appl){
+												if(err) throw err;
+												console.log("Saved application " + entry._id + " to declined since event is full")										
+											});
+
+											if (applications.length === index+1){
+													res.redirect('/events/' + event_id);
+											}									
+										});
+									}
+									else{
+										res.redirect('/events/' + event_id);
+									}
+								});
+							});
+
+						}
+						else {
+							res.redirect('/events/' + event_id);
+						}
+					});
+				});
+
+			}
+			else {
+				res.redirect('/events/' + event_id);
+			}
+		});
 	});
-
-
 });
 
 
@@ -244,8 +305,15 @@ router.get('/events/:id', ensureAuthenticated, function(req, res){
 				var query = {event_id : req.params.id}
 				
 				var user_apps = [];
-				var user_accepted =[];
-
+				var user_accepted = [];
+				var user_declined = [];
+				var user_cancelled_org = [];
+				var user_cancelled_vol = [];
+				var user_completed = [];
+				var event_completed = (event[0].status === "completed");
+				var event_cancelled = (event[0].status === "cancelled");
+				var event_full = (event[0].status === "full");
+				var event_active = (event[0].status === "active");
 				Application.find(query).sort({created_time: -1}).exec(function(err, applications){
 
 						if(err) throw err;
@@ -273,18 +341,199 @@ router.get('/events/:id', ensureAuthenticated, function(req, res){
 									}else if (application.status =="accepted") {
 										user_accepted.push(x);
 									}
+									else if (application.status == "declined"){
+										user_declined.push(x);
+									}
+									else if (application.status == "cancelled_org"){
+										user_cancelled_org.push(x);
+									}
+									else if (application.status == "cancelled_vol"){
+										user_cancelled_vol.push(x);
+									}
+									else if (application.status == "completed"){
+										user_completed.push(x);
+									}
+
+
 
 									console.log("user_apps is " + JSON.stringify(x));
 								});
 						});
 
-					var context = {user : req.user, event: event[0], applications: JSON.stringify(applications), user_apps: user_apps, user_accepted: user_accepted};
+					var duration_hours = (event[0].event_end_date.getTime() - event[0].event_start_date.getTime())/(1000*3600);
+					var duration_minutes = Math.round((duration_hours-Math.floor(duration_hours))*60);
+					duration_hours = Math.floor(duration_hours);
+
+					var context = {
+						user : req.user, 
+						event: event[0], 
+						applications: JSON.stringify(applications), 
+						user_apps: user_apps, 
+						user_accepted: user_accepted, 
+						user_declined: user_declined, 
+						user_cancelled_org: user_cancelled_org, 
+						user_completed: user_completed,
+						event_completed: event_completed,
+						event_cancelled: event_cancelled,
+						event_full: event_full,
+						event_active: event_active,
+						duration_hours: duration_hours,
+						duration_minutes: duration_minutes
+					};
+
 					res.render('event_page', context);
 
 				});
 		 });
 });
 
+
+router.post('/change_status', ensureAuthenticated, function(req, res){
+	console.log("req.user is " + req.user);
+	var event_id = req.body.event_id
+	var application_id = req.body.application_id
+	var type = req.body.type
+	var duration_hours = req.body.duration_hours
+	var duration_minutes = req.body.duration_minutes
+
+	if (type == "event_completed"){
+		query = {
+			_id: event_id
+		}
+		Event.find(query, function(err, event){
+			if(err) throw err;
+
+			if (event.length !== 0){
+				event[0].status = "completed"
+				event[0].save(function(err, event){
+					if(err) throw err;
+					console.log("Saved Event (completed) " + event_id)
+					
+					res.redirect("/events/"+event_id)
+				});
+			}
+			else{
+				res.redirect("/events/"+event_id)
+			}
+		});
+	}
+	else if (type == "cancel_event"){
+		query = {
+			_id: event_id
+		}
+		Event.find(query, function(err, event){
+			if(err) throw err;
+
+			if (event.length !== 0){
+				event[0].status = "cancelled"
+				event[0].save(function(err, event){
+					if(err) throw err;
+					console.log("Saved Event (cancelled) " + event_id)
+					
+					query = {
+						event_id: event_id
+					}
+					Application.find(query, function(err, application){
+						if(err) throw err;
+
+						if (application.length !== 0){
+
+							application.forEach(function(entry, index){
+								entry.status = "cancelled_org"
+								entry.save(function(err, app){
+									if(err) throw err;
+									console.log("Saved Application (cancelled_org) " + entry._id)
+								});
+
+								if (application.length === index+1){
+									res.redirect("/events/"+event_id)
+								}
+							});
+						}
+						else{
+							res.redirect("/events/"+event_id)
+						}
+					});
+
+
+
+				});
+			}
+			else{
+				res.redirect("/events/"+event_id)
+			}
+		});
+
+	}
+	else if (type == "cancel_vol"){
+		query = {
+			_id: application_id
+		}
+		Application.find(query, function(err, application){
+			if(err) throw err;
+
+			if (application.length !== 0){
+				application[0].status = "cancelled_vol"
+				application[0].save(function(err, application){
+					if(err) throw err;
+					console.log("Saved Application (cancelled_vol) " + application_id)
+					
+					res.redirect("/")
+				});
+			}
+			else{
+				res.redirect("/")
+			}
+		});
+	}
+	else if (type == "attended"){
+		query = {
+			_id: application_id
+		}
+		Application.find(query, function(err, application){
+			if(err) throw err;
+
+			if (application.length !== 0){
+				application[0].hours = parseFloat(duration_hours)+(parseFloat(duration_minutes)/60.0)
+				application[0].status = "completed"
+				application[0].save(function(err, application){
+					if(err) throw err;
+					console.log("Saved Application (completed) " + application_id)
+					
+					res.redirect("/events/"+event_id)
+				});
+			}
+			else{
+				res.redirect("/events/"+event_id)
+			}
+		});
+	}
+	else if (type == "not_attended"){
+		query = {
+			_id: application_id
+		}
+		Application.find(query, function(err, application){
+			if(err) throw err;
+
+			if (application.length !== 0){
+				application[0].status = "declined"
+				application[0].save(function(err, application){
+					if(err) throw err;
+					console.log("Saved Application (declined) " + application_id)
+					
+					res.redirect("/events/"+event_id)
+				});
+			}
+			else{
+				res.redirect("/events/"+event_id)
+			}
+		});
+	}
+	else{
+		console.log("Invalid type submitted to /change_status. Redirecting to home")
+		res.redirect("/")
+	}
+});
 
 
 router.get('/events', ensureAuthenticated, function(req, res){
@@ -386,7 +635,8 @@ router.post('/events', function(req, res){
 	var event_type = req.body.event_type;
 	var max_volunteers = req.body.max_volunteers;
 	var subscriber_model = req.body.subscriber_model
-
+	var location_name = req.body.location_name;
+	var description = req.body.description;
 	var skills = [];
 	var interests = [];
 	var eventids = [];
@@ -399,6 +649,7 @@ router.post('/events', function(req, res){
 	req.checkBody('end_date', 'Start Date is required').notEmpty();
 	req.checkBody('organization_id', 'organization_id is required').notEmpty();
 	req.checkBody('event_type', 'event_type is required').notEmpty();
+	req.checkBody('description', 'description is required').notEmpty();
 
 
 	var errors = req.validationErrors();
@@ -436,11 +687,13 @@ router.post('/events', function(req, res){
 			event_end_date: end_date,
 			lat: lat,
 			lng: lng,
+			location_name: location_name,
 			organization_id: organization_id,
 			skills: skills,
 			interests: interests,
 			subscriber_model: subscriber_model,
-			max_volunteers: max_volunteers
+			max_volunteers: max_volunteers,
+			description: description
 		});
 
 
@@ -450,7 +703,7 @@ router.post('/events', function(req, res){
 
 
 
-		if (subscriber_model != true){
+			if (subscriber_model != true){
 
 					client.index({
 						index: 'test_events4',
@@ -461,6 +714,7 @@ router.post('/events', function(req, res){
 							end_date: newEvent.event_end_date,
 							recurring: 'recurring',
 							location: { lat:lat, lon: lng},
+							location_name: newEvent.location_name,
 							organization_name: req.user.name,
 							event_type: event_type,
 							event_id: newEvent.id,
@@ -481,45 +735,45 @@ router.post('/events', function(req, res){
 
 
 			//expects id from user table
-			var candidate = findSuitableCandidate(newEvent);
-			User.findById(candidate,function(err, user){
-				if(err) throw err;
-				var name = user.name;
-				var email = user.email;
+			// var candidate = findSuitableCandidate(newEvent);
+			// User.findById(candidate,function(err, user){
+			// 	if(err) throw err;
+			// 	var name = user.name;
+			// 	var email = user.email;
 			
-				var htmlEmail = 'Email will be sent to ' + email +'\n<p>Hi '+ name +'</p><h3>Please consider this new volunteer opportunity recommended for you!</h3><br/><table><tr><td style="background-color: #4ecdc4;border-color: #4c5764;border: 2px solid #45b7af;padding: 10px;text-align: center;"><a style="display: block;color: #ffffff;font-size: 12px;text-decoration: none;text-transform: uppercase;" href="localhost:3050/subscribe/'+newEvent.id+'/yes">Yes</a></td><td style="background-color: #cd4e9c;border-color: #4c5764;border: 2px solid #cd4e9c;padding: 10px;text-align: center;"><a style="display: block;color: #ffffff;font-size: 12px;text-decoration: none;text-transform: uppercase;" href="localhost:3050/subscribe/'+newEvent.id+'/no">No</a></td></tr></table>';
-				//send email to subscriber
-				nodemailerMailgun.sendMail({
-					from: 'team@volunteer.ga',
-					to: email, // An array if you have multiple recipients.
-					subject: 'New Volunteer Opportunity',
-					//'h:Reply-To': 'eventCreator@company.com',
-					//You can use "html:" to send HTML email content. It's magic!
-					html: htmlEmail,
-					//You can use "text:" to send plain-text content. It's oldschool!
-				//text: 'Mailgun rocks, pow pow!'
-				}, function (err, info) {
-					if (err) {
-						console.log('Error: ' + err);
-					}
-					else {
-						console.log('Response: ' + info);
-					}
-				});
-				//add subscription event to database
-				var newSubscriber = new Subscriber({
-					event_id: newEvent.id,
-					email_data: [{
-						user_id: candidate,
-						responded: false,
-						response: null
-					}]
-				});
-				Subscriber.createSubscriber(newSubscriber, function(err,user) {
+			// 	var htmlEmail = 'Email will be sent to ' + email +'\n<p>Hi '+ name +'</p><h3>Please consider this new volunteer opportunity recommended for you!</h3><br/><table><tr><td style="background-color: #4ecdc4;border-color: #4c5764;border: 2px solid #45b7af;padding: 10px;text-align: center;"><a style="display: block;color: #ffffff;font-size: 12px;text-decoration: none;text-transform: uppercase;" href="localhost:3050/subscribe/'+newEvent.id+'/yes">Yes</a></td><td style="background-color: #cd4e9c;border-color: #4c5764;border: 2px solid #cd4e9c;padding: 10px;text-align: center;"><a style="display: block;color: #ffffff;font-size: 12px;text-decoration: none;text-transform: uppercase;" href="localhost:3050/subscribe/'+newEvent.id+'/no">No</a></td></tr></table>';
+			// 	//send email to subscriber
+			// 	nodemailerMailgun.sendMail({
+			// 		from: 'team@volunteer.ga',
+			// 		to: email, // An array if you have multiple recipients.
+			// 		subject: 'New Volunteer Opportunity',
+			// 		//'h:Reply-To': 'eventCreator@company.com',
+			// 		//You can use "html:" to send HTML email content. It's magic!
+			// 		html: htmlEmail,
+			// 		//You can use "text:" to send plain-text content. It's oldschool!
+			// 	//text: 'Mailgun rocks, pow pow!'
+			// 	}, function (err, info) {
+			// 		if (err) {
+			// 			console.log('Error: ' + err);
+			// 		}
+			// 		else {
+			// 			console.log('Response: ' + info);
+			// 		}
+			// 	});
+			// 	//add subscription event to database
+			// 	var newSubscriber = new Subscriber({
+			// 		event_id: newEvent.id,
+			// 		email_data: [{
+			// 			user_id: candidate,
+			// 			responded: false,
+			// 			response: null
+			// 		}]
+			// 	});
+			// 	Subscriber.createSubscriber(newSubscriber, function(err,user) {
 
-				});
+			// 	});
 
-			});
+			// });
 			
 			req.flash('success_msg', 'Event was created');
 			var context = {user : req.user}
@@ -623,7 +877,7 @@ function test_sub(){
 								console.log("finding subs for " + event['event_name']);
 
 
-								//mark these subs as rejected, the user didn't respond to them
+								//mark these subs as declined, the user didn't respond to them
 								var query = {event_id: event['_id'], status: 'tbd', offer_number: global_sub_num};
 								Subscriber.find(query, function(err, sent_subs){
 									if(err) throw err;
@@ -635,10 +889,10 @@ function test_sub(){
 										var sent_sub = sent_subs[s];
 
 										console.log("rejecting sub is " + JSON.stringify(sent_sub));
-										//mark status are rejected
-										//sent_sub.status = 'rejected';
+										//mark status are declined
+										//sent_sub.status = 'declined';
 
-										Subscriber.update({_id: sent_sub._id}, { status: 'rejected' }, function(err, updatedSub) {
+										Subscriber.update({_id: sent_sub._id}, { status: 'declined' }, function(err, updatedSub) {
 											if(err) throw err;
 										});
 									
@@ -749,7 +1003,7 @@ function send_offer(event_id, volunteer_id, global_offer_number) {
 
 							//var htmlEmail = 'Email will be sent to ' + email +'\n<p>Hi '+ name +'</p><h3>Please consider this new volunteer opportunity recommended for you!</h3><br/><table><tr><td style="background-color: #4ecdc4;border-color: #4c5764;border: 2px solid #45b7af;padding: 10px;text-align: center;"><a style="display: block;color: #ffffff;font-size: 12px;text-decoration: none;text-transform: uppercase;" href="localhost:3050/subscribe/'+newEvent.id+'/yes">Yes</a></td><td style="background-color: #cd4e9c;border-color: #4c5764;border: 2px solid #cd4e9c;padding: 10px;text-align: center;"><a style="display: block;color: #ffffff;font-size: 12px;text-decoration: none;text-transform: uppercase;" href="localhost:3050/subscribe/'+newEvent.id+'/no">No</a></td></tr></table>';
 							//send email to subscriber
-							var htmlEmail = '<!DOCTYPE html> <html> <head> <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" /> <link href="https://fonts.googleapis.com/css?family=Rajdhani" rel="stylesheet"> <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script> <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> <style> body { font-family: "Rajdhani", sans-serif; } hr { margin-top: 0px; margin-bottom: 0px; } #button1 , #button2 { display:inline-block; /**other codes**/ } </style> </head> <body> <div class="container"> <div class="row"> <h3>Hi,' +  name +'</h3> <h3>Please consider this new volunteer opportunity recommended for you.</h3> <br> <p>Organization Name: Sick Kids Hospital </p> <p>Event Name: ' +  event.event_name + ' </p> <p>Event Location (Lat/Lon): ' + event.lat + '/' + event.lon  +' </p> <p>Event Date: ' + event.event_start_date +' to ' + event.event_end_date + '</p> <br> <form action="http://localhost:3050/subscribe/'  + newSubscriber._id + '/yes" id="button1" method="get"> <input type="submit" class="btn btn-success" id="button1" value="Accept"/> </form> <form method="get" action="http://localhost:3050/subscribe/' + newSubscriber._id +'/no" id="button2"> <input type="submit" class="btn btn-danger" id="button1" value="Decline"/> </form> </div> <br><br> <br> <footer class="footer"> <p>© 2017 Volunteer Discovery Platform.</p> </footer> </div> </body> </html>';
+							var htmlEmail = '<!DOCTYPE html> <html> <head> <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" /> <link href="https://fonts.googleapis.com/css?family=Rajdhani" rel="stylesheet"> <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script> <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> <style> body { font-family: "Rajdhani", sans-serif; } hr { margin-top: 0px; margin-bottom: 0px; } #button1 , #button2 { display:inline-block; /**other codes**/ } </style> </head> <body> <div class="container"> <div class="row"> <h3>Hi,' +  name +'</h3> <h3>Please consider this new volunteer opportunity recommended for you.</h3> <br> <p>Organization Name: Sick Kids Hospital </p> <p>Event Name: ' +  event.event_name + ' </p> <p>Event Location (Lat/Lon): ' + event.lat + '/' + event.lon  +' </p> <p>Event Date: ' + event.event_start_date +' to ' + event.event_end_date + '</p> <br> <form action="http://volunteer.ga/subscribe/'  + newSubscriber._id + '/yes" id="button1" method="get"> <input type="submit" class="btn btn-success" id="button1" value="Accept"/> </form> <form method="get" action="http://volunteer.ga/subscribe/' + newSubscriber._id +'/no" id="button2"> <input type="submit" class="btn btn-danger" id="button1" value="Decline"/> </form> </div> <br><br> <br> <footer class="footer"> <p>© 2017 Volunteer Discovery Platform.</p> </footer> </div> </body> </html>';
 
 							nodemailerMailgun.sendMail({
 								from: 'team@volunteer.ga',
@@ -866,7 +1120,7 @@ function ensureAuthenticated(req, res, next){
 
 var mailgunAuth = {
     auth: {
-      api_key: 'key-acf0e476f168e2d479cd087c28357604',
+      api_key: '//',
       domain: 'sandbox091e9e5e429d4b24aae968453fe23f11.mailgun.org'
     }//,
     //proxy: 'http://user:pass@localhost:8080' // optional proxy, default is false
@@ -874,11 +1128,11 @@ var mailgunAuth = {
   var nodemailerMailgun = nodemailer.createTransport(mg(mailgunAuth));
 
 //given event, select a suitable candidate to send email to
-function findSuitableCandidate(eventData) {
-	//for now just return a uid 
-	//TODO - actually recommend a proper candidate based on event
-	return '5a5b8bb79c77e933ac651ff2';
-}
+// function findSuitableCandidate(eventData) {
+// 	//for now just return a uid 
+// 	//TODO - actually recommend a proper candidate based on event
+// 	return '5a5b8bb79c77e933ac651ff2';
+// }
 
 
 

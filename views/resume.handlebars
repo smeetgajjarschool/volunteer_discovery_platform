@@ -1,0 +1,90 @@
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>{{user.name}} Resume</title>
+<link type="text/css" rel="stylesheet" href="/blue.css" />
+<!--[if IE 7]>
+<link href="ie7.css" rel="stylesheet" type="text/css" />
+<![endif]-->
+<!--[if IE 6]>
+<link href="ie6.css" rel="stylesheet" type="text/css" />
+<![endif]-->
+
+</head>
+<body>
+<!-- Begin Wrapper -->
+<div id="wrapper">
+  <div class="wrapper-top"></div>
+  <div class="wrapper-mid">
+    <!-- Begin Paper -->
+    <div id="paper">
+      <div class="paper-top"></div>
+      <div id="paper-mid">
+        <div class="entry">
+          <!-- Begin Personal Information -->
+          <div class="self">
+            <h1 class="name">{{user.name}}</h1>
+          </div>
+          <!-- End Personal Information -->
+        </div>
+        <!-- Begin 3rd Row -->
+        <div class="entry">
+          {{#if apps}}
+          <h2>EXPERIENCE</h2>
+          {{#each apps}}
+          <div class="content">
+            <h3>{{this.event.event_name}} - {{dateFormat this.event.event_start_date "/" 0}}<br>{{timeFormat this.application.hours}}</h3>
+            <p>{{this.user.name}}, {{this.event.location_name}}<br />
+              <em>Volunteer</em></p>
+            {{#if this.review}}
+            <ul class="info">
+              <li>Review: "{{this.review.review}}"</li>
+              <li>Rating: {{this.review.rating}}</li>
+            </ul>
+            {{/if}}
+          </div>
+          {{/each}}
+          {{/if}}
+        </div>
+        <!-- End 3rd Row -->
+        <!-- Begin 4th Row -->
+        {{#if this.profile}}
+        {{#if this.profile.skills}}
+        <div class="entry">
+         <h2>SKILLS</h2>
+          <div class="content">
+            <ul class="skills">
+            {{#each this.profile.skills }} 
+              <li>{{ this }}</li>
+            {{/each}}
+            </ul>
+          </div>
+        </div>
+        {{/if}}
+
+        {{#if this.profile.interests}}
+        <div class="entry">
+          <h2>INTERESTS</h2>
+          <div class="content">
+            <ul class="skills">
+            {{#each this.profile.interests}} 
+              <li>{{ this }}</li>
+            {{/each}}
+            </ul>
+          </div>
+        </div>
+        {{/if}}
+        {{/if}}
+
+        <!-- End 4th Row -->
+        <!-- Begin 5th Row -->
+      </div>
+      <div class="clear"></div>
+      <div class="paper-bottom"></div>
+    </div>
+    <!-- End Paper -->
+  </div>
+  <div class="wrapper-bottom"></div>
+</div>
+<div id="message"><a href="#top" id="top-link">Go to Top</a></div>
+<!-- End Wrapper -->
+</body>

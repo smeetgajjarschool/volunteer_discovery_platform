@@ -20,7 +20,7 @@ function formatDate(date, separator, format) {
     if (month.length < 2) month = '0' + month;
     if (day.length < 2) day = '0' + day;
 
-    if (format = 1){
+    if (format == 1){
     	return [year, month, day].join(separator);
     }
     else{
@@ -67,51 +67,52 @@ router.get('/', ensureAuthenticated, function(req, res){
 
 				   		completed_applications.forEach(function(entry, index){
 
-				   			if (completed_applications.length === index+1){
-				   				//Last iteration of the completed applications array. Render the view after this.
-							   	query = {
-						   			_id: entry.event_id
+						   	query = {
+					   			_id: entry.event_id
+					   		}
+					   		Event.find(query, "_id event_name organization_id", function(err, event){
+								if(err) {
+							   		console.log("ERROR trying to find events");
+							   		throw err;
 						   		}
-						   		Event.find(query, "_id event_name organization_id", function(err, event){
+
+								console.log("Found event: " + JSON.stringify(event))
+
+						   		User.getUserById(event[0].organization_id, function(err, user_review_for){
 									if(err) {
-								   		console.log("ERROR trying to find events");
+								   		console.log("ERROR trying to find user");
 								   		throw err;
 							   		}
+									console.log("Found user: " + JSON.stringify(user_review_for))
 
-									console.log("Found event: " + JSON.stringify(event))
-
-							   		User.getUserById(event[0].organization_id, function(err, user_review_for){
+								   	query = {
+							   			review_by_id: req.user.id,
+										review_for_id: user_review_for._id,
+										event_id: entry.event_id
+								   	}
+							   		Review.find(query, function(err, review){
 										if(err) {
-									   		console.log("ERROR trying to find user");
+									   		console.log("ERROR trying to find reviews");
 									   		throw err;
 								   		}
-										console.log("Found user: " + JSON.stringify(user_review_for))
 
-									   	query = {
-								   			review_by_id: req.user.id,
-											review_for_id: user_review_for._id,
-											event_id: entry.event_id
-									   	}
-								   		Review.find(query, function(err, review){
-											if(err) {
-										   		console.log("ERROR trying to find reviews");
-										   		throw err;
-									   		}
+						   				if (user_review_for !== null && review.length === 0 && user_review_for.length !== 0){
+						   					console.log("index" + index)
+						   					console.log("pending_reviews" + pending_reviews)
+						   					pending_reviews[index] = [];
+									   		pending_reviews[index].push({
+									   			review_by_id: req.user.id,
+												review_for_id: user_review_for._id,
+												event_id: entry.event_id,
+												event_name: event[0].event_name, 
+												review_for_name: user_review_for.name
+									   		});
 
-							   				if (user_review_for !== null && review.length === 0 && user_review_for.length !== 0){
-							   					console.log("index" + index)
-							   					console.log("pending_reviews" + pending_reviews)
-							   					pending_reviews[index] = [];
-										   		pending_reviews[index].push({
-										   			review_by_id: req.user.id,
-													review_for_id: user_review_for._id,
-													event_id: entry.event_id,
-													event_name: event[0].event_name, 
-													review_for_name: user_review_for.name
-										   		});
+									   		console.log("pending_reviews = " + JSON.stringify(pending_reviews))
+										}
 
-										   		console.log("pending_reviews = " + JSON.stringify(pending_reviews))
-											}
+							   			if (completed_applications.length === index+1){
+							   				//Last iteration of the completed applications array. Render the view after this.
 
 										   	dob = formatDate(profile[0].dob, "/", 0)
 
@@ -128,60 +129,10 @@ router.get('/', ensureAuthenticated, function(req, res){
 
 											console.log("Loading current user's profile")
 											res.render('profile', context);
-
-										});											
-									});
-						   		});
-						   	}
-						   	else{
-						   		//If this is not the last completed application of the array
-							   	query = {
-						   			_id: entry.event_id
-						   		}
-						   		Event.find(query, "_id event_name organization_id", function(err, event){
-									if(err) {
-								   		console.log("ERROR trying to find events");
-								   		throw err;
-							   		}
-									console.log("Found event: " + JSON.stringify(event))
-
-							   		query = {
-							   			_id: event.organization_id
-							   		}
-							   		User.find(query, "_id name", function(err, user_review_for){
-										if(err) {
-									   		console.log("ERROR trying to find events");
-									   		throw err;
-								   		}	
-
-										console.log("Found user_review_for: " + JSON.stringify(user_review_for))
-
-									   	query = {
-								   			review_by_id: req.user.id,
-											review_for_id: user_review_for._id,
-											event_id: entry.event_id
-									   	}
-								   		Review.find(query, function(err, review){
-											if(err) {
-										   		console.log("ERROR trying to find events");
-										   		throw err;
-									   		}
-
-							   				if (user_review_for !== null && review.length === 0 && user_review_for.length !== 0){
-							   					pending_reviews[index] = [];
-										   		pending_reviews[index].push({
-										   			review_by_id: req.user.id,
-													review_for_id: user_review_for._id,
-													event_id: entry.event_id,
-													event_name: event.event_name, 
-													review_for_name: user_review_for.name
-										   		});
-										   	}
-										});
-									});	
-								   	
-						   		});
-						   	}
+										}
+									});											
+								});
+					   		});						   		
 				   		});
 				   	}
 				   	else
@@ -201,7 +152,6 @@ router.get('/', ensureAuthenticated, function(req, res){
 
 						console.log("Loading current user's profile")
 						res.render('profile', context);
-
 				   	}
 			   	});
 
@@ -224,20 +174,21 @@ router.get('/', ensureAuthenticated, function(req, res){
 			   		console.log("Found events " + completed_events)
 					if (completed_events.length !== 0){
 
+						var iter = 0;
 				   		completed_events.forEach(function(entry, index){
 
-				   			if (completed_events.length === index+1){
-				   				//Last iteration of the completed applications array. Render the view after this.
-							   	query = {
-						   			event_id: entry._id
+						   	query = {
+					   			event_id: entry._id
+					   		}
+					   		Application.find(query, "_id event_id volunteer_id", function(err, application){
+								if(err) {
+							   		console.log("ERROR trying to find events");
+							   		throw err;
 						   		}
-						   		Application.find(query, "_id event_id volunteer_id", function(err, application){
-									if(err) {
-								   		console.log("ERROR trying to find events");
-								   		throw err;
-							   		}
 
-									console.log("Found application: " + JSON.stringify(application))
+								console.log("Found application: " + JSON.stringify(application))
+
+								if (application.length !== 0){
 
 									application.forEach(function(entry2, index2){
 
@@ -259,92 +210,67 @@ router.get('/', ensureAuthenticated, function(req, res){
 											   		throw err;
 										   		}
 
+		   										console.log("1111111 - user_review_for "+ user_review_for.name +" review" + review)
 								   				if (user_review_for !== null && review.length === 0 && user_review_for.length !== 0){
 								   					console.log("index" + index)
 								   					console.log("pending_reviews" + pending_reviews)
-								   					pending_reviews[index] = [];
-											   		pending_reviews[index].push({
+								   					pending_reviews[iter] = [];
+											   		pending_reviews[iter].push({
 											   			review_by_id: req.user.id,
 														review_for_id: user_review_for._id,
 														event_id: entry2.event_id,
 														event_name: entry.event_name, 
 														review_for_name: user_review_for.name
 											   		});
-
+											   		iter++
 											   		console.log("pending_reviews = " + JSON.stringify(pending_reviews))
 												}
 
-											   	dob = formatDate(profile[0].dob, "/", 0)
+									   			if (application.length === index2+1 && completed_events.length === index+1){
+									   				//Last iteration of the completed applications array. Render the view after this.
 
-											   	var context = {
-													profile: profile[0], 
-													error_msg: req.flash('error_msg'),
-													volunteer: volunteer,
-													organization: organization,
-													user: req.user,
-													dob: dob,
-													pending_reviews: pending_reviews
-												};
-												console.log("context" + JSON.stringify(context))
+												   	dob = formatDate(profile[0].dob, "/", 0)
 
-												console.log("Loading current user's profile")
-												res.render('profile', context);
+												   	var context = {
+														profile: profile[0], 
+														error_msg: req.flash('error_msg'),
+														volunteer: volunteer,
+														organization: organization,
+														user: req.user,
+														dob: dob,
+														pending_reviews: pending_reviews
+													};
+													console.log("context" + JSON.stringify(context))
 
-											});											
-										});
-								   	});
-						   		});
-						   	}
-						   	else{
-						   		//If this is not the last completed application of the array
-							   	query = {
-						   			event_id: entry._id
-						   		}
-						   		Application.find(query, "_id event_id volunteer_id", function(err, application){
-									if(err) {
-								   		console.log("ERROR trying to find events");
-								   		throw err;
-							   		}
-
-									console.log("Found application: " + JSON.stringify(application))
-
-									application.forEach(function(entry2, index2){
-
-								   		User.getUserById(application[index2].volunteer_id, function(err, user_review_for){
-											if(err) {
-										   		console.log("ERROR trying to find user");
-										   		throw err;
-									   		}
-											console.log("Found user: " + JSON.stringify(user_review_for))
-
-										   	query = {
-									   			review_by_id: req.user.id,
-												review_for_id: user_review_for._id,
-												event_id: entry2.event_id
-										   	}
-									   		Review.find(query, function(err, review){
-												if(err) {
-											   		console.log("ERROR trying to find reviews");
-											   		throw err;
-										   		}
-
-								   				if (user_review_for !== null && review.length === 0 && user_review_for.length !== 0){
-								   					console.log("index" + index)
-								   					console.log("pending_reviews" + pending_reviews)
-								   					pending_reviews[index] = [];
-											   		pending_reviews[index].push({
-											   			review_by_id: req.user.id,
-														review_for_id: user_review_for._id,
-														event_id: entry2.event_id,
-														event_name: event[0].event_name, 
-														review_for_name: user_review_for.name
-											   		});
+													console.log("Loading current user's profile")
+													res.render('profile', context);
 												}
 											});											
 										});
 								   	});
-						   		});
-						   	}
+								}
+								else{
+						   			if (completed_events.length === index+1){
+						   				//Last iteration of the completed applications array. Render the view after this.
+
+									   	dob = formatDate(profile[0].dob, "/", 0)
+
+									   	var context = {
+											profile: profile[0], 
+											error_msg: req.flash('error_msg'),
+											volunteer: volunteer,
+											organization: organization,
+											user: req.user,
+											dob: dob,
+											pending_reviews: pending_reviews
+										};
+										console.log("context" + JSON.stringify(context))
+
+										console.log("Loading current user's profile")
+										res.render('profile', context);
+									}
+								}
+					   		});
 				   		});
 				   	}
 				   	else
@@ -361,10 +287,8 @@ router.get('/', ensureAuthenticated, function(req, res){
 							dob: dob,
 							pending_reviews: pending_reviews
 						};
-
 						console.log("Loading current user's profile")
 						res.render('profile', context);
-
 				   	}
 			   	});
 		   	}		   	
@@ -461,8 +385,9 @@ router.post('/create', function(req, res){
 	var name = req.body.name;
 	var dob = req.body.dob;
 	var interests = req.body.interests;
+	var phone_number = req.body.phone_number;
 	console.log(interests);
-	var skills = req.body.skills;
+	var skills = req.body.skills
 		console.log(skills);
 
 	var dob = req.body.dob;
@@ -497,9 +422,9 @@ router.post('/create', function(req, res){
 		}
 	};
 
-	var role = req.body.role;
+	var type_org = req.body.type_org;
 	console.log(availability);
-	var organization_name = req.body.organization_name;
+	var description = req.body.description;
 
 	// Validation
 	if (user_type == "volunteer"){
@@ -509,8 +434,9 @@ router.post('/create', function(req, res){
 		req.checkBody('skills', 'A skill is required').notEmpty();
 	}
 	else {
-		req.checkBody('organization_name', 'Organization Name is required').notEmpty();
-		req.checkBody('role', 'Role is required').notEmpty();
+		req.checkBody('description', 'Organization Description is required').notEmpty();
+		req.checkBody('type_org', 'Type of Organization is required').notEmpty();
+		req.checkBody('phone_number', 'Phone Number is required').notEmpty();
 	}
 
 	var errors = req.validationErrors();
@@ -535,8 +461,9 @@ router.post('/create', function(req, res){
 		else {
 			newProfile = new Profile({
 				uid: req.user.id,
-				role: role,
-				organization_name: organization_name
+				type_org: type_org,
+				description: description,
+				phone_number: phone_number
 			});
 		}
 
@@ -560,9 +487,8 @@ router.post('/update', function(req, res){
 	var interests = req.body.interests;
 	console.log(interests);
 	var skills = req.body.skills;
-		console.log(skills);
-
 	var dob = req.body.dob;
+	var phone_number = req.body.phone_number;
 	var availability = {
 		monday: {
 			from: req.body.availability_monday_from,
@@ -594,8 +520,8 @@ router.post('/update', function(req, res){
 		}
 	};
 
-	var role = req.body.role;
-	var organization_name = req.body.organization_name;
+	var type_org = req.body.type_org;
+	var description = req.body.description;
 	console.log(availability);
 
 	// Validation
@@ -606,8 +532,9 @@ router.post('/update', function(req, res){
 		req.checkBody('skills', 'A skill is required').notEmpty();
 	}
 	else {
-		req.checkBody('organization_name', 'Organization Name is required').notEmpty();
-		req.checkBody('role', 'Role is required').notEmpty();
+		req.checkBody('description', 'Organization Description is required').notEmpty();
+		req.checkBody('type_org', 'Type of Organization is required').notEmpty();
+		req.checkBody('phone_number', 'Phone Number is required').notEmpty();
 	}
 
 	var errors = req.validationErrors();
@@ -645,8 +572,9 @@ router.post('/update', function(req, res){
 			else {
 				editProfile = new Profile({
 					_id: pid,
-					role: role,
-					organization_name: organization_name
+					type_org: type_org,
+					description: description,
+					phone_number: phone_number
 				});
 			}
 
@@ -663,6 +591,340 @@ router.post('/update', function(req, res){
 	}
 });
 
+router.get('/resume/:username', ensureAuthenticated, function(req, res){
+	var username = req.params.username
+	var user;
+	var profile;
+	var reviews;
+	var average_rating = 0;
+	var apps = [];
+	var events;
+	var num_reviews = 0;
+
+	User.getUserByUsername(username, function(err, user){
+		if(err) {
+	   		console.log("ERROR trying to find user");
+	   		throw err;
+		}
+		console.log("Found user: " + JSON.stringify(user))
+		
+		if (user !== null && user.user_type === "volunteer"){ 
+			var query = {
+				uid: user.id
+			}
+			Profile.find(query, function(err, profile){
+				if(err) {
+			   		console.log("ERROR trying to find profiles");
+			   		throw err;
+		   		}
+				console.log("Found profile: " + JSON.stringify(profile))
+
+				query = {
+					volunteer_id: user.id,
+					status: "completed"
+				}
+				Application.find(query, function(err, completed_applications){
+					if(err) {
+				   		console.log("ERROR trying to find applications");
+				   		throw err;
+			   		}
+
+			   		if (completed_applications.length !== 0){
+			   			completed_applications.forEach(function(entry, index){
+
+			   				query = {
+			   					_id: entry.event_id
+			   				}
+						   	Event.find(query, function(err, event){
+								if(err) {
+							   		console.log("ERROR trying to find events");
+							   		throw err;
+						   		}
+								console.log("Found event: " + JSON.stringify(event))
+
+						   		User.getUserById(event[0].organization_id, function(err, user2){
+									if(err) {
+								   		console.log("ERROR trying to find events");
+								   		throw err;
+							   		}
+									console.log("Found user2: " + JSON.stringify(user2))
+
+							   		query = {
+							   			review_for_id: user.id, 
+							   			review_by_id: user2.id, 
+							   			event_id: event[0].id
+							   		}
+
+									Review.find(query, function(err, review){
+										if(err) {
+									   		console.log("ERROR trying to find reviews");
+									   		throw err;
+										}
+
+										if (review.length !== 0){
+											average_rating += (review[0].rating)
+											num_reviews = num_reviews + 1;
+										}
+
+								   		var app = {};
+								   		app["event"] = event[0];
+								   		app["user"] = user2;
+								   		app["application"] = entry;
+								   		app["review"] = review[0];
+								   		apps.push(app);
+
+								   		if (index+1 === completed_applications.length){
+								   			average_rating = parseFloat(average_rating)/num_reviews;
+									   		var context = {
+									   			user: user,
+									   			profile: profile[0],
+									   			reviews: reviews,
+									   			average_rating: average_rating,
+									   			apps: apps,
+									   			events: events,
+									   			num_reviews: num_reviews						
+									   		}
+									   		console.log("context= " + JSON.stringify(context))
+									   		res.render("resume", context)
+										}
+									});
+						   		});
+					   		});
+				   		});
+					}
+					else{
+				   		var context = {
+				   			user: user,
+				   			profile: profile[0],
+				   			reviews: reviews,
+				   			average_rating: average_rating,
+				   			apps: apps,
+				   			events: events,
+							num_reviews: num_reviews						
+				   		}
+				   		res.render("resume", context)
+					}
+				});
+			});
+		}
+		else{
+			console.log(username + "is not a volunteer or user! Redirecting to /")
+			res.redirect("/")
+		}
+	});			
+
+});
+
+router.get('/:username', ensureAuthenticated, function(req, res){
+	var username = req.params.username
+	var user;
+	var profile;
+	var reviews;
+	var average_rating = 0;
+	var apps = [];
+	var events;
+	var num_reviews = 0;
+
+	User.getUserByUsername(username, function(err, user){
+		if(err) {
+	   		console.log("ERROR trying to find user");
+	   		throw err;
+		}
+		console.log("Found user: " + JSON.stringify(user))
+		
+		if (user !== null){ 
+			var query = {
+				uid: user.id
+			}
+			Profile.find(query, function(err, profile){
+				if(err) {
+			   		console.log("ERROR trying to find profiles");
+			   		throw err;
+		   		}
+				console.log("Found profile: " + JSON.stringify(profile))
+
+				if (user.user_type === "volunteer"){
+					query = {
+						volunteer_id: user.id,
+						status: "completed"
+					}
+					Application.find(query, function(err, completed_applications){
+						if(err) {
+					   		console.log("ERROR trying to find applications");
+					   		throw err;
+				   		}
+
+				   		if (completed_applications.length !== 0){
+				   			completed_applications.forEach(function(entry, index){
+
+				   				query = {
+				   					_id: entry.event_id
+				   				}
+							   	Event.find(query, function(err, event){
+									if(err) {
+								   		console.log("ERROR trying to find events");
+								   		throw err;
+							   		}
+									console.log("Found event: " + JSON.stringify(event))
+
+							   		User.getUserById(event[0].organization_id, function(err, user2){
+										if(err) {
+									   		console.log("ERROR trying to find events");
+									   		throw err;
+								   		}
+										console.log("Found user2: " + JSON.stringify(user2))
+
+								   		query = {
+								   			review_for_id: user.id, 
+								   			review_by_id: user2.id, 
+								   			event_id: event[0].id
+								   		}
+
+										Review.find(query, function(err, review){
+											if(err) {
+										   		console.log("ERROR trying to find reviews");
+										   		throw err;
+											}
+											console.log("B4 44444 num_reviews=" + num_reviews)
+											console.log("review= "+ review)
+											console.log("review.length = "+ review.length)
+											if (review.length !== 0){
+												average_rating += (review[0].rating)
+												num_reviews = num_reviews + 1;
+												console.log("num_reviews=" + num_reviews)
+											}
+
+									   		var app = {};
+									   		app["event"] = event[0];
+									   		app["user"] = user2;
+									   		app["application"] = entry;
+									   		app["review"] = review[0];
+									   		apps.push(app);
+
+									   		if (index+1 === completed_applications.length){
+									   			average_rating = parseFloat(average_rating)/num_reviews;
+										   		var context = {
+										   			user: user,
+										   			profile: profile[0],
+										   			reviews: reviews,
+										   			average_rating: average_rating,
+										   			apps: apps,
+										   			events: events,
+										   			num_reviews: num_reviews						
+										   		}
+										   		console.log("context= " + JSON.stringify(context))
+										   		res.render("public_profile", context)
+											}
+										});
+							   		});
+						   		});
+					   		});
+						}
+						else{
+					   		var context = {
+					   			user: user,
+					   			profile: profile[0],
+					   			reviews: reviews,
+					   			average_rating: average_rating,
+					   			apps: apps,
+					   			events: events,
+								num_reviews: num_reviews						
+					   		}
+					   		res.render("public_profile", context)
+						}
+					});
+				}
+				else {
+	   				query = {
+	   					organization_id: user.id,
+	   					status: "completed"
+	   				}
+				   	Event.find(query, function(err, events){
+						if(err) {
+					   		console.log("ERROR trying to find events");
+					   		throw err;
+				   		}
+
+				   		query = {
+				   			review_for_id: user.id
+				   		}
+
+						Review.find(query, function(err, reviews){
+							if(err) {
+						   		console.log("ERROR trying to find reviews");
+						   		throw err;
+							}
+
+							num_reviews = reviews.length
+								
+							if (reviews.length !== 0){
+								reviews.forEach(function(entry, index){
+
+							   		average_rating += (entry.rating/num_reviews)
+
+									query = {
+					   					organization_id: user.id,
+					   					status: "completed"
+					   				}
+								   	Event.find(query, function(err, event){
+										if(err) {
+									   		console.log("ERROR trying to find events");
+									   		throw err;
+								   		}
+
+								   		User.getUserById(event[0].organization_id, function(err, user2){
+											if(err) {
+										   		console.log("ERROR trying to find events");
+										   		throw err;
+									   		}
+											console.log("Found user2: " + JSON.stringify(user2))
+
+											var app = {};
+											app["user"] = user2;
+											app["event"] = event[0];
+											app["review"] = entry;
+											apps.push(app);
+
+									   		if (index+1 === reviews.length){								
+									   			var context = {
+										   			user: user,
+										   			profile: profile[0],
+										   			reviews: reviews,
+										   			average_rating: average_rating,
+										   			apps: apps,
+										   			events: events,
+										   			num_reviews: num_reviews						
+										   		}
+										   		res.render("public_profile", context)
+											}
+										});
+								   	});
+								});
+							}
+							else{
+						   		var context = {
+						   			user: user,
+						   			profile: profile[0],
+						   			reviews: reviews,
+						   			average_rating: average_rating,
+						   			apps: apps,
+						   			events: events,
+						   			num_reviews: num_reviews						
+						   		}
+						   		res.render("public_profile", context)
+							}
+
+						});
+				   	});
+				}					
+			});
+		}
+		else{
+			console.log("No username " + username + " found! Redirecting to /")
+			res.redirect("/")
+		}
+	});
+});
 
 function ensureAuthenticated(req, res, next){
 	if(req.isAuthenticated()){

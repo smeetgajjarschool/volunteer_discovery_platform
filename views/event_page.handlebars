@@ -20,10 +20,8 @@
 <h3>{{event.event_name}}</h3>
 <br>
 
-<h4>Organization: Mission Green Earth</h4>
-<p>
-Mission Green Earth was founded in 2001 by Tony Treelander to help combat climate change. Trees provide fresh oxygen and removes harmful carbon dioxides from the environment.
-</p>
+<h4>Organization: {{user.name}}</h4>
+<p>Description: {{event.description}}</p>
 
 <br>
 
@@ -38,6 +36,24 @@ Mission Green Earth was founded in 2001 by Tony Treelander to help combat climat
 	<p>Created Date: {{event.created_time}} </p>
 	<h3>Status: <span style="color:green"> {{event.status}} </span></h3>
 	</div>
+
+{{#if event_full}}
+    <form action="/change_status" method="post">
+        <input type="hidden" name="event_id" value="{{event._id}}">
+        <input type="hidden" name="type" value="event_completed">
+        <input type="submit" class="btn btn-success" name="submit" value="Event Completed">
+    </form>
+    <br>
+{{/if}}
+{{#if event_cancelled}}
+{{else if event_completed}}
+{{else}}
+<form action="/change_status" method="post">
+    <input type="hidden" name="event_id" value="{{event._id}}">
+    <input type="hidden" name="type" value="cancel_event">
+    <input type="submit" class="btn btn-danger" name="submit" value="Cancel Event">
+</form>
+{{/if}}
 </div>
 
 
@@ -71,10 +87,68 @@ Mission Green Earth was founded in 2001 by Tony Treelander to help combat climat
 		 <h4 style="display: inline;vertical-align: center;">{{volunteer.name}}</h4> 
 		 <p style="display: inline;vertical-align: center;"> {{application.created_time}}<p>
 		</div>
+		{{#if ../event_completed}}
+			<form action="/change_status" method="post">
+				<label>Hours</label>
+				<input type="number" name="duration_hours" max="1000" value="{{../duration_hours}}">
+				<label>Minutes</label>
+				<input type="number" name="duration_minutes" min="0" max="60" value="{{../duration_minutes}}">
+		        <input type="hidden" name="event_id" value="{{../event._id}}">
+		        <input type="hidden" name="application_id" value="{{this.application._id}}">
+		        <input type="hidden" name="type" value="attended">
+		        <input type="submit" class="btn btn-success" name="submit" value="Attended">
+		    </form>
+		    <form action="/change_status" method="post">
+		        <input type="hidden" name="event_id" value="{{event._id}}">
+		        <input type="hidden" name="application_id" value="{{this.application._id}}">
+		        <input type="hidden" name="type" value="not_attended">
+		        <input type="submit" class="btn btn-danger" name="submit" value="Did Not Attend">
+		    </form>
+	    {{/if}}
 </div>
 <hr>
 {{/each}}
 {{/if}}
+
+{{#if user_declined}}
+<h3>Rejected Applications:</h3>
+{{#each user_declined}}
+	<div class="row">
+		<div class="col-md-8">
+		 <h4 style="display: inline;vertical-align: center;">{{volunteer.name}}</h4> 
+		 <p style="display: inline;vertical-align: center;"> {{application.created_time}}<p>
+		</div>
+</div>
+<hr>
+{{/each}}
+{{/if}}
+
+{{#if user_cancelled_vol}}
+<h3>Volunteer Cancelled Applications:</h3>
+{{#each user_cancelled_vol}}
+	<div class="row">
+		<div class="col-md-8">
+		 <h4 style="display: inline;vertical-align: center;">{{volunteer.name}}</h4> 
+		 <p style="display: inline;vertical-align: center;"> {{application.created_time}}<p>
+		</div>
+</div>
+<hr>
+{{/each}}
+{{/if}}
+
+{{#if user_completed}}
+<h3>Completed Applications:</h3>
+{{#each user_completed}}
+	<div class="row">
+		<div class="col-md-8">
+		 <h4 style="display: inline;vertical-align: center;">{{volunteer.name}}</h4> 
+		 <p style="display: inline;vertical-align: center;"> {{application.created_time}}<p>
+		</div>
+</div>
+<hr>
+{{/each}}
+{{/if}}
+
 
 <script>
 

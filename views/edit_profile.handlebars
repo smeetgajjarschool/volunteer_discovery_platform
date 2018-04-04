@@ -144,18 +144,18 @@ body,
   <form method="post" action="/profile/update">
    	<div class="form-group">
     	<label>Name</label>
-    	<input type="text" class="form-control" placeholder="Name" name="name" value={{user.name}}>
+    	<input type="text" class="form-control" placeholder="Name" name="name" value="{{user.name}}">
   	</div>
 
   	<div class="form-group">
     	<label>Date of Birth</label>
-    	<input type="date" class="form-control" placeholder="Date of Birth" name="dob" value={{dob}}>
+    	<input type="date" class="form-control" placeholder="Date of Birth" name="dob" value="{{profile.dob}}">
   	</div>
 
   	<div class="form-group">
    		<div class="interests_wrapper">
 			<label>Interests</label>
-	    	<input type="text" class="form-control" placeholder="Interest" name="interests[]" value={{profile.interests}}><br>
+	    	<input type="text" class="form-control" placeholder="Interest" name="interests[]" value="{{profile.interests.[0]}}"><br>
   		</div>
 	    <button class="add_interest_button btn">Add Another Interest</button>
   	</div>
@@ -163,7 +163,7 @@ body,
     <div class="form-group">
         <div class="skills_wrapper">
 			<label>Skills or Experiences</label>
-	    	<input type="text" class="form-control" placeholder="Skill or Experience" name="skills[]" value={{profile.skills}}><br>
+	    	<input type="text" class="form-control" placeholder="Skill or Experience" name="skills[]" value="{{profile.skills.[0]}}"><br>
   		</div>
 	    <button class="add_skill_button btn">Add Another Skill or Experience</button>
   	</div>
@@ -267,12 +267,30 @@ body,
   	    var wrapper         = $(".interests_wrapper"); //Fields wrapper
   	    var add_button      = $(".add_interest_button"); //Add button ID
   	    
-  	    var x = 1; //initial text box count
+        var interests_arr = [' '
+                              {{#each profile.interests}}
+                                ,'{{ this }}'
+                              {{/each }}];
+
+        ['{{profile.interests}}'];
+        $.each(interests_arr, function( index, value ) {
+          if(index >= 2 && index <= 5){
+            $(wrapper).append('<div><input type="text" class="form-control" placeholder="Skill or Experience" name="skills[]" value="' + interests_arr[index] +'"/><a href="#" class="remove_skill btn-link">Remove</a></div>');
+          }
+        });
+
+        if (interests_arr.length === 0){
+          var x = 1;
+        }
+        else {
+          var x = interests_arr.length-1; //initial text box count
+        }
+
   	    $(add_button).click(function(e){ //on add input button click
   	        e.preventDefault();
   	        if(x < max_fields){ //max input box allowed
   	            x++; //text box increment
-  	            $(wrapper).append('<div><input type="text" class="form-control" placeholder="Interest" name="interests[]"/><a href="#" class="remove_interest btn-link">Remove</a></div>'); //add input box
+                $(wrapper).append('<div><input type="text" class="form-control" placeholder="Interest" name="interests[]"  /><a href="#" class="remove_interest btn-link">Remove</a></div>'); //add input box
   	        }
   	    });
   	    
@@ -286,12 +304,28 @@ body,
   	    var wrapper         = $(".skills_wrapper"); //Fields wrapper
   	    var add_button      = $(".add_skill_button"); //Add button ID
   	    
-  	    var x = 1; //initial text box count
+        var skills_arr = [' '
+                              {{#each profile.skills}}
+                                ,'{{ this }}'
+                              {{/each }}];
+        $.each(skills_arr, function( index, value ) {
+          if(index >= 2 && index <= 5){
+            $(wrapper).append('<div><input type="text" class="form-control" placeholder="Skill or Experience" name="skills[]" value="' + skills_arr[index] +'"/><a href="#" class="remove_skill btn-link">Remove</a></div>');
+          }
+        });
+
+        if (skills_arr.length === 0){
+          var x = 1;
+        }
+        else {
+          var x = skills_arr.length-1; //initial text box count
+        }
+
   	    $(add_button).click(function(e){ //on add input button click
   	        e.preventDefault();
   	        if(x < max_fields){ //max input box allowed
   	            x++; //text box increment
-  	            $(wrapper).append('<div><input type="text" class="form-control" placeholder="Skill or Experience" name="skills[]"/><a href="#" class="remove_skill btn-link">Remove</a></div>'); //add input box
+                $(wrapper).append('<div><input type="text" class="form-control" placeholder="Skill or Experience" name="skills[]" /><a href="#" class="remove_skill btn-link">Remove</a></div>'); //add input box
   	        }
   	    });
   	    
@@ -817,11 +851,23 @@ body,
   <form method="post" action="/profile/update">
      <div class="form-group">
       <label>Organization Name</label>
-      <input type="text" class="form-control" placeholder="Name" name="name" value={{user.name}}>
+      <input type="text" class="form-control" placeholder="Name" name="name" value="{{user.name}}">
     </div>
     <div class="form-group">
-      <label>Organization Role</label>
-      <input type="text" class="form-control" placeholder="Role" name="role" value={{profile.role}}>
+      <label>Organization Type</label>
+      <input type="text" class="form-control" placeholder="Type" name="type_org" value="{{profile.type_org}}">
+    </div>
+    <div class="form-group">
+      <label>Organization Description</label>
+      <input type="text" class="form-control" placeholder="Description" name="description" value="{{profile.description}}">
+    </div>
+            <div class="form-group">
+      <label>Main Office Location</label>
+      <input type="text" class="form-control" placeholder="Address" name="address" value="{{user.address}}">
+    </div>
+    <div class="form-group">
+      <label>Phone Number</label>
+      <input type="text" class="form-control" placeholder="Phone Number" name="phone_number" value="{{profile.phone_number}}">
     </div>
     <button type="submit" class="btn btn-default">Submit</button>
   </form>
